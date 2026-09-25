@@ -6,3 +6,4 @@ services:
     environment:
       GITLAB_URL: ${GITLAB_URL}
       GITLAB_TOKEN: ${GITLAB_TOKEN}
+      JWT_SECRET: ${JWT_SECRET}

@@ -3,6 +3,9 @@ package webservice;
 import business.GitLabIssueGateway;
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
+import io.restassured.RestAssured;
+import io.restassured.builder.RequestSpecBuilder;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.Map;
@@ -17,6 +20,23 @@ import static org.mockito.Mockito.verify;
 class PlanningPokerResourceTest {
     @InjectMock
     GitLabIssueGateway gitLabIssueGateway;
+
+    @BeforeEach
+    void authenticate() {
+        given().contentType(JSON).body(Map.of("username", "Mara", "password", "a-secure-test-password"))
+                .when().post("/auth/register")
+                .then().statusCode(201);
+
+        String accessToken = given().contentType(JSON)
+                .body(Map.of("username", "Mara", "password", "a-secure-test-password"))
+                .when().post("/auth/login")
+                .then().statusCode(200)
+                .extract().path("accessToken");
+
+        RestAssured.requestSpecification = new RequestSpecBuilder()
+                .addHeader("Authorization", "Bearer " + accessToken)
+                .build();
+    }
 
     // Prüft den vollständigen REST-Ablauf einer Planning-Poker-Session.
     @Test
