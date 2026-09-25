@@ -8,6 +8,8 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.UUID;
+
 class GitLabIssueGatewayTest {
     // Prüft, dass das finale Ergebnis als scoped GitLab-Label am Issue gespeichert wird.
     @Test
@@ -16,11 +18,11 @@ class GitLabIssueGatewayTest {
         Issue issue = new Issue(42);
         RecordingGitLabIssueGateway gitLabIssueGateway = new RecordingGitLabIssueGateway();
         PlanningPokerBusiness business = new PlanningPokerBusiness(gitLabIssueGateway);
-        business.createPlanningPoker(scrumMaster, 123L, issue);
-        business.releaseActiveIssue(scrumMaster);
-        business.reveal(scrumMaster, scrumMaster);
+        UUID planningPokerId = business.createPlanningPoker(scrumMaster, 123L, issue);
+        business.releaseActiveIssue(planningPokerId, scrumMaster);
+        business.reveal(planningPokerId, scrumMaster, scrumMaster);
 
-        business.takeToGitlab(scrumMaster, CardValue.EIGHT);
+        business.takeToGitlab(planningPokerId, scrumMaster, CardValue.EIGHT);
 
         assertTrue(issue.isApproved());
         assertEquals(123L, gitLabIssueGateway.projectId);

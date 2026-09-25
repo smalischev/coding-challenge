@@ -6,8 +6,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.OptionalInt;
 import java.util.Set;
+import java.util.UUID;
 
 public class PlanningPoker {
+    private final UUID id;
     private final Session session;
     private final long gitlabProjektID;
     private final List<Issue> issues;
@@ -17,6 +19,7 @@ public class PlanningPoker {
     private final ScrumMaster owner;
 
     public PlanningPoker(ScrumMaster owner, long gitlabProjektID, Issue issue) {
+        this.id = UUID.randomUUID();
         this.owner = owner;
         this.developers = new ArrayList<>();
         this.issues = new ArrayList<>();
@@ -24,6 +27,10 @@ public class PlanningPoker {
         this.gitlabProjektID = gitlabProjektID;
         this.activeIssue = issue;
         this.selectIssue(owner, this.activeIssue);
+    }
+
+    public UUID getId() {
+        return id;
     }
 
     public void selectIssue(Member member, Issue issue) {

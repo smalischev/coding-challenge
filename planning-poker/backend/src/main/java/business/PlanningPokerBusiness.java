@@ -1,98 +1,123 @@
 package business;
 
 import domain.*;
+import repository.InMemoryPlanningPokerRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 
 import java.util.Map;
 import java.util.OptionalInt;
+import java.util.UUID;
 
 @ApplicationScoped
 public class PlanningPokerBusiness {
     private static final String PLANNING_POKER_LABEL_PREFIX = "planning-poker::";
 
     private final GitLabIssueGateway gitLabIssueGateway;
-    private PlanningPoker planningPoker;
+    private final PlanningPokerRepository planningPokerRepository;
 
     @Inject
-    public PlanningPokerBusiness(GitLabIssueGateway gitLabIssueGateway) {
+    public PlanningPokerBusiness(
+            GitLabIssueGateway gitLabIssueGateway,
+            PlanningPokerRepository planningPokerRepository
+    ) {
         this.gitLabIssueGateway = gitLabIssueGateway;
+        this.planningPokerRepository = planningPokerRepository;
     }
 
-    //Scrum master ertellt eine neue planning-poker-sitzung
-    public void createPlanningPoker(ScrumMaster scrumMaster, long gitlabProjectID, Issue issue){
-        this.planningPoker = new PlanningPoker(scrumMaster, gitlabProjectID, issue);
+    // Kompatibilitätskonstruktor für reine Java-Tests ohne CDI.
+    public PlanningPokerBusiness(GitLabIssueGateway gitLabIssueGateway) {
+        this(gitLabIssueGateway, new InMemoryPlanningPokerRepository());
     }
 
-    //weitere Teilnehmer können der Sitzung beitreten.
-    public void join(Member member, Developer developer) {
+    public UUID createPlanningPoker(ScrumMaster scrumMaster, long gitlabProjectID, Issue issue) {
+        PlanningPoker planningPoker = new PlanningPoker(scrumMaster, gitlabProjectID, issue);
+        planningPokerRepository.save(planningPoker);
+        return planningPoker.getId();
+    }
+
+    public void join(UUID planningPokerId, Member member, Developer developer) {
+        PlanningPoker planningPoker = getPlanningPoker(planningPokerId);
         planningPoker.join(member, developer);
+        save(planningPoker);
     }
 
-    //scrum master wählt issue aus, das als nächstes geschätzt werden soll
-    //scrum master kann aktive issue wechseln, solange die runde nicht abgeschlossen ist.
-    public void selectIssue(Member member, Issue issue) {
+    public void selectIssue(UUID planningPokerId, Member member, Issue issue) {
+        PlanningPoker planningPoker = getPlanningPoker(planningPokerId);
         planningPoker.selectIssue(member, issue);
+        save(planningPoker);
     }
 
-    //erst nach freigabe des scrum master, können schätzungen abgegeben werden
-    public void releaseActiveIssue(Member member) {
+    public void releaseActiveIssue(UUID planningPokerId, Member member) {
+        PlanningPoker planningPoker = getPlanningPoker(planningPokerId);
         planningPoker.releaseActiveIssue(member);
+        save(planningPoker);
     }
 
-    //entwickler geben schätzung ab.
-    public void estimate(Member member, Developer developer, CardValue cardValue) {
+    public void estimate(UUID planningPokerId, Member member, Developer developer, CardValue cardValue) {
+        PlanningPoker planningPoker = getPlanningPoker(planningPokerId);
         planningPoker.estimate(member, developer, cardValue);
+        save(planningPoker);
     }
 
-    //scrum master löst jederzeit die runde auf
-    public void reveal(Member member, ScrumMaster scrumMaster) {
+    public void reveal(UUID planningPokerId, Member member, ScrumMaster scrumMaster) {
+        PlanningPoker planningPoker = getPlanningPoker(planningPokerId);
         planningPoker.reveal(member, scrumMaster);
+        save(planningPoker);
     }
 
-    //nach auflösung, (A) kann neue runde starten für das gleiche Issue
-    //alle bisherigen Karten werden zurückgesetzt
-    public void startNewRound(Member member) {
+    public void startNewRound(UUID planningPokerId, Member member) {
+        PlanningPoker planningPoker = getPlanningPoker(planningPokerId);
         planningPoker.startNewRound(member);
+        save(planningPoker);
     }
 
-    // (B) wert in das Gitlab-Issue übernehmen
-    public void takeToGitlab(ScrumMaster scrumMaster, CardValue value) {
+    public void takeToGitlab(UUID planningPokerId, ScrumMaster scrumMaster, CardValue value) {
+        PlanningPoker planningPoker = getPlanningPoker(planningPokerId);
         Issue issue = planningPoker.finalizeResult(scrumMaster, value);
         String label = PLANNING_POKER_LABEL_PREFIX + value.getLabelValue();
-
-        gitLabIssueGateway.addScopedLabel(
-                planningPoker.getGitlabProjectId(),
-                issue.getGitlabIssueIid(),
-                label
-        );
+        gitLabIssueGateway.addScopedLabel(planningPoker.getGitlabProjectId(), issue.getGitlabIssueIid(), label);
+        save(planningPoker);
     }
 
-    public EstimationProgress getEstimationProgress(){
-        return planningPoker.getEstimationProgress();
+    public EstimationProgress getEstimationProgress(UUID planningPokerId) {
+        return getPlanningPoker(planningPokerId).getEstimationProgress();
     }
 
-    public boolean allDevelopersEstimated() {
-        return planningPoker.allDevelopersEstimated();
+    public boolean allDevelopersEstimated(UUID planningPokerId) {
+        return getPlanningPoker(planningPokerId).allDevelopersEstimated();
     }
 
-    public Map<Developer, CardValue> getEstimateValues() {
-        return planningPoker.getEstimateValues();
+    public Map<Developer, CardValue> getEstimateValues(UUID planningPokerId) {
+        return getPlanningPoker(planningPokerId).getEstimateValues();
     }
 
-    public Map<CardValue, Long> groupEstimates() {
-        return planningPoker.groupEstimates();
+    public Map<CardValue, Long> groupEstimates(UUID planningPokerId) {
+        return getPlanningPoker(planningPokerId).groupEstimates();
     }
 
-    public OptionalInt calculateAverage() {
-        return planningPoker.calculateAverage();
+    public OptionalInt calculateAverage(UUID planningPokerId) {
+        return getPlanningPoker(planningPokerId).calculateAverage();
     }
 
-    public OptionalInt findMostFrequentValue() {
-        return planningPoker.findMostFrequentValue();
+    public OptionalInt findMostFrequentValue(UUID planningPokerId) {
+        return getPlanningPoker(planningPokerId).findMostFrequentValue();
     }
 
-    public void finalizeResult(ScrumMaster scrumMaster, CardValue value) {
+    public void finalizeResult(UUID planningPokerId, ScrumMaster scrumMaster, CardValue value) {
+        PlanningPoker planningPoker = getPlanningPoker(planningPokerId);
         planningPoker.finalizeResult(scrumMaster, value);
+        save(planningPoker);
+    }
+
+    private PlanningPoker getPlanningPoker(UUID planningPokerId) {
+        if (planningPokerId == null) {
+            throw new IllegalStateException("no planning poker session created");
+        }
+        return planningPokerRepository.getById(planningPokerId);
+    }
+
+    private void save(PlanningPoker planningPoker) {
+        planningPokerRepository.save(planningPoker);
     }
 }
