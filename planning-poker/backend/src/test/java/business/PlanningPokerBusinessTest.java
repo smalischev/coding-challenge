@@ -3,6 +3,9 @@ package business;
 import domain.*;
 import org.junit.jupiter.api.Test;
 
+import java.util.ArrayList;
+import java.util.EnumSet;
+import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
@@ -285,6 +288,104 @@ class PlanningPokerBusinessTest {
         business.reveal(scrumMaster, scrumMaster);
 
         assertThrows(IllegalStateException.class, () -> business.selectIssue(scrumMaster, new Issue()));
+    }
+
+    // Prüft, dass der häufigste numerische Kartenwert nach der Auflösung ermittelt wird.
+    @Test
+    void mostFrequentEstimateValueIsCalculated() {
+        ScrumMaster scrumMaster = new ScrumMaster("Mara");
+        Developer firstDeveloper = new Developer("Alex");
+        Developer secondDeveloper = new Developer("Kim");
+        Developer thirdDeveloper = new Developer("Jo");
+        PlanningPokerBusiness business = createBusiness(scrumMaster, new Issue());
+        business.join(firstDeveloper, firstDeveloper);
+        business.join(secondDeveloper, secondDeveloper);
+        business.join(thirdDeveloper, thirdDeveloper);
+        business.releaseActiveIssue(scrumMaster);
+        business.estimate(firstDeveloper, firstDeveloper, CardValue.FIVE);
+        business.estimate(secondDeveloper, secondDeveloper, CardValue.FIVE);
+        business.estimate(thirdDeveloper, thirdDeveloper, CardValue.EIGHT);
+        business.reveal(scrumMaster, scrumMaster);
+
+        assertEquals(5, business.findMostFrequentValue());
+    }
+
+    // Prüft, dass eine neue Runde für dasselbe Issue erst nach der Auflösung starten darf.
+    @Test
+    void newRoundCannotStartBeforeReveal() {
+        ScrumMaster scrumMaster = new ScrumMaster("Mara");
+        PlanningPokerBusiness business = createBusiness(scrumMaster, new Issue());
+
+        assertThrows(IllegalStateException.class, () -> business.startNewRound(scrumMaster));
+    }
+
+    // Prüft, dass ein Issue-Wechsel die Schätzungen des zuvor aktiven Issues verwirft.
+    @Test
+    void issueChangeResetsEstimatesForNewActiveIssue() {
+        ScrumMaster scrumMaster = new ScrumMaster("Mara");
+        Developer developer = new Developer("Alex");
+        PlanningPokerBusiness business = createBusiness(scrumMaster, new Issue());
+        business.join(developer, developer);
+        business.releaseActiveIssue(scrumMaster);
+        business.estimate(developer, developer, CardValue.FIVE);
+
+        business.selectIssue(scrumMaster, new Issue());
+
+        assertNull(business.getDevelopersEstimated().get(developer));
+    }
+
+    // Prüft, dass Fragezeichen und Kaffeetasse als gewähltes Ergebnis im Issue gespeichert werden.
+    @Test
+    void specialCardValuesAreStoredInIssue() {
+        ScrumMaster scrumMaster = new ScrumMaster("Mara");
+        Issue questionMarkIssue = new Issue();
+        Issue coffeeIssue = new Issue();
+        PlanningPokerBusiness questionMarkBusiness = revealedBusiness(scrumMaster, questionMarkIssue);
+        PlanningPokerBusiness coffeeBusiness = revealedBusiness(scrumMaster, coffeeIssue);
+
+        questionMarkBusiness.finalizeResult(scrumMaster, CardValue.QUESTION_MARK);
+        coffeeBusiness.finalizeResult(scrumMaster, CardValue.COFFEE);
+
+        assertEquals(CardValue.QUESTION_MARK, questionMarkIssue.getValue());
+        assertEquals(CardValue.COFFEE, coffeeIssue.getValue());
+    }
+
+    // Prüft, dass jeder definierte Kartenwert als Schätzung abgegeben werden kann.
+    @Test
+    void everyCardValueCanBeEstimated() {
+        ScrumMaster scrumMaster = new ScrumMaster("Mara");
+        PlanningPokerBusiness business = createBusiness(scrumMaster, new Issue());
+        List<Developer> developers = new ArrayList<>();
+
+        for (CardValue cardValue : CardValue.values()) {
+            Developer developer = new Developer(cardValue.name());
+            developers.add(developer);
+            business.join(developer, developer);
+        }
+
+        business.releaseActiveIssue(scrumMaster);
+        for (int index = 0; index < CardValue.values().length; index++) {
+            Developer developer = developers.get(index);
+            business.estimate(developer, developer, CardValue.values()[index]);
+        }
+        business.reveal(scrumMaster, scrumMaster);
+
+        assertEquals(EnumSet.allOf(CardValue.class),
+                EnumSet.copyOf(business.getEstimateValues().values()));
+    }
+
+    // Prüft, dass der beim Beitritt angegebene Name in der Teilnehmerübersicht erhalten bleibt.
+    @Test
+    void joinedDeveloperIsVisibleWithName() {
+        ScrumMaster scrumMaster = new ScrumMaster("Mara");
+        Developer developer = new Developer("Alex");
+        PlanningPokerBusiness business = createBusiness(scrumMaster, new Issue());
+
+        business.join(developer, developer);
+
+        assertTrue(business.getDevelopersEstimated().keySet().stream()
+                .map(Developer::getName)
+                .anyMatch("Alex"::equals));
     }
 
     private PlanningPokerBusiness createBusiness(ScrumMaster scrumMaster, Issue issue) {
