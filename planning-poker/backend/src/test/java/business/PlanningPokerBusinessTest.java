@@ -103,9 +103,24 @@ class PlanningPokerBusinessTest {
         PlanningPokerBusiness business = createBusiness(scrumMaster, new Issue());
 
         assertAll(
-                () -> assertThrows(RuntimeException.class, () -> business.releaseActiveIssue(developer)),
-                () -> assertThrows(RuntimeException.class, () -> business.selectIssue(developer, new Issue())),
-                () -> assertThrows(RuntimeException.class, () -> business.reveal(developer, scrumMaster))
+                () -> assertThrows(NotAllowedException.class, () -> business.releaseActiveIssue(developer)),
+                () -> assertThrows(NotAllowedException.class, () -> business.selectIssue(developer, new Issue())),
+                () -> assertThrows(NotAllowedException.class, () -> business.startNewRound(developer)),
+                () -> assertThrows(NotAllowedException.class, () -> business.reveal(developer, scrumMaster))
+        );
+    }
+
+    // Prüft, dass der Scrum Master keine Entwickleraktionen ausführen darf.
+    @Test
+    void scrumMasterCannotPerformDeveloperActions() {
+        ScrumMaster scrumMaster = new ScrumMaster("Mara");
+        Developer developer = new Developer("Alex");
+        PlanningPokerBusiness business = createBusiness(scrumMaster, new Issue());
+
+        assertAll(
+                () -> assertThrows(NotAllowedException.class, () -> business.join(scrumMaster, developer)),
+                () -> assertThrows(NotAllowedException.class,
+                        () -> business.estimate(scrumMaster, developer, CardValue.FIVE))
         );
     }
 

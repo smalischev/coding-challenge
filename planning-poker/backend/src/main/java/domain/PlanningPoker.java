@@ -26,7 +26,7 @@ public class PlanningPoker {
 
     public void selectIssue(Member member, Issue issue) {
         if(member.getRole() != Role.SCRUM_MASTER){
-            throw new RuntimeException("not allowed, only scrum master");
+            throw new NotAllowedException("not allowed, only scrum master");
         }
 
         if (currentRound != null && currentRound.isRevealed()) {
@@ -43,7 +43,7 @@ public class PlanningPoker {
 
     public void releaseActiveIssue(Member member) {
         if(member.getRole() != Role.SCRUM_MASTER){
-            throw new RuntimeException("not allowed, only scrum master");
+            throw new NotAllowedException("not allowed, only scrum master");
         }
 
         if (currentRound == null || activeIssue == null) {
@@ -55,7 +55,7 @@ public class PlanningPoker {
 
     public void startNewRound(Member member) {
         if(member.getRole() != Role.SCRUM_MASTER){
-            throw new RuntimeException("not allowed, only scrum master");
+            throw new NotAllowedException("not allowed, only scrum master");
         }
 
         if (activeIssue == null) {
@@ -70,7 +70,7 @@ public class PlanningPoker {
             throw new RuntimeException("no estimation round created");
 
         if(member.getRole() != Role.DEVELOPER){
-            throw new RuntimeException("not allowed, only developer");
+            throw new NotAllowedException("not allowed, only developer");
         }
 
         if(this.currentRound.isReleased())
@@ -85,7 +85,7 @@ public class PlanningPoker {
 
     public void estimate(Member member, Developer developer, CardValue cardValue) {
         if(member.getRole() != Role.DEVELOPER){
-            throw new RuntimeException("not allowed, only scrum master");
+            throw new NotAllowedException("not allowed, only developer");
         }
 
         if(!this.currentRound.isReleased()){
@@ -110,7 +110,7 @@ public class PlanningPoker {
     // die Gruppenauswertung, der Durchschnitt und der häufigste Wert sichtbar.
     public void reveal(Member member, ScrumMaster scrumMaster) {
         if(member.getRole() != Role.SCRUM_MASTER){
-            throw new RuntimeException("not allowed, only scrum master");
+            throw new NotAllowedException("not allowed, only scrum master");
         }
 
         if (currentRound == null) {
