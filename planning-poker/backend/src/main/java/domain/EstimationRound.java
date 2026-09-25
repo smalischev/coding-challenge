@@ -70,6 +70,8 @@ public class EstimationRound {
     }
 
     public Map<CardValue, Long> groupEstimates() {
+        ensureRevealed();
+
         return estimates.values().stream()
                 .collect(Collectors.groupingBy(
                         Function.identity(),
@@ -79,6 +81,8 @@ public class EstimationRound {
     }
 
     public int calculateAverage() {
+        ensureRevealed();
+
         return (int) estimates.values().stream()
                 .filter(CardValue::isNumeric)
                 .mapToInt(CardValue::getNumericValue)
@@ -87,6 +91,8 @@ public class EstimationRound {
     }
 
     public int findMostFrequentValue() {
+        ensureRevealed();
+
         return groupEstimates().entrySet().stream()
                 .filter(entry -> entry.getKey().isNumeric())
                 .max(Map.Entry.comparingByValue())
@@ -104,5 +110,11 @@ public class EstimationRound {
         }
 
         this.issue.approve(value);
+    }
+
+    private void ensureRevealed() {
+        if (!revealed) {
+            throw new IllegalStateException("estimates are not revealed yet");
+        }
     }
 }

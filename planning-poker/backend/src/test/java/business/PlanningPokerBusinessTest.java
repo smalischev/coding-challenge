@@ -249,6 +249,23 @@ class PlanningPokerBusinessTest {
         assertThrows(IllegalStateException.class, business::getEstimateValues);
     }
 
+    // Prüft, dass Auswertungen erst nach der Auflösung sichtbar sind.
+    @Test
+    void estimateStatisticsAreHiddenBeforeReveal() {
+        ScrumMaster scrumMaster = new ScrumMaster("Mara");
+        Developer developer = new Developer("Alex");
+        PlanningPokerBusiness business = createBusiness(scrumMaster, new Issue());
+        business.join(developer, developer);
+        business.releaseActiveIssue(scrumMaster);
+        business.estimate(developer, developer, CardValue.FIVE);
+
+        assertAll(
+                () -> assertThrows(IllegalStateException.class, business::groupEstimates),
+                () -> assertThrows(IllegalStateException.class, business::calculateAverage),
+                () -> assertThrows(IllegalStateException.class, business::findMostFrequentValue)
+        );
+    }
+
     // Prüft, dass nach der Auflösung keine weitere Schätzung möglich ist.
     @Test
     void developerCannotEstimateAfterReveal() {
