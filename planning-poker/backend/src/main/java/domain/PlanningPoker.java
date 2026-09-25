@@ -70,6 +70,9 @@ public class PlanningPoker {
         if(member.getRole() != Role.DEVELOPER){
             throw new NotAllowedException("not allowed, only developer");
         }
+        if (!member.equals(developer)) {
+            throw new NotAllowedException("not allowed, a developer can only join for themselves");
+        }
 
         if(this.currentRound.isReleased())
             throw new RuntimeException("cannot join member after released estimation round");
@@ -84,6 +87,9 @@ public class PlanningPoker {
     public void estimate(Member member, Developer developer, CardValue cardValue) {
         if(member.getRole() != Role.DEVELOPER){
             throw new NotAllowedException("not allowed, only developer");
+        }
+        if (!member.equals(developer)) {
+            throw new NotAllowedException("not allowed, a developer can only estimate for themselves");
         }
 
         if(!this.currentRound.isReleased()){
@@ -108,7 +114,7 @@ public class PlanningPoker {
     // die Gruppenauswertung, der Durchschnitt und der häufigste Wert sichtbar.
     public void reveal(Member member, ScrumMaster scrumMaster) {
         ensureSessionOwner(member);
-        if (scrumMaster != owner) {
+        if (!scrumMaster.equals(owner)) {
             throw new NotAllowedException("not allowed, only the session owner can reveal estimates");
         }
 
@@ -128,7 +134,7 @@ public class PlanningPoker {
     }
 
     public void finalizeResult(ScrumMaster scrumMaster, CardValue value) {
-        if (scrumMaster != this.owner) {
+        if (!scrumMaster.equals(this.owner)) {
             throw new NotAllowedException("not allowed, only the session owner can finalize the result");
         }
 
@@ -180,7 +186,7 @@ public class PlanningPoker {
     }
 
     private void ensureSessionOwner(Member member) {
-        if (member != owner) {
+        if (!member.equals(owner)) {
             throw new NotAllowedException("not allowed, only the session owner can perform this action");
         }
     }

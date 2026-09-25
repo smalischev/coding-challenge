@@ -126,6 +126,49 @@ class PlanningPokerBusinessTest {
         );
     }
 
+    // Prüft, dass ein Entwickler nicht im Namen eines anderen Entwicklers handeln darf.
+    @Test
+    void developerCannotJoinOrEstimateAsAnotherDeveloper() {
+        ScrumMaster scrumMaster = new ScrumMaster("Mara");
+        Developer callingDeveloper = new Developer("Alex");
+        Developer otherDeveloper = new Developer("Kim");
+        PlanningPokerBusiness business = createBusiness(scrumMaster, new Issue());
+
+        assertThrows(NotAllowedException.class, () -> business.join(callingDeveloper, otherDeveloper));
+
+        business.join(callingDeveloper, callingDeveloper);
+        business.releaseActiveIssue(scrumMaster);
+
+        assertThrows(NotAllowedException.class,
+                () -> business.estimate(callingDeveloper, otherDeveloper, CardValue.FIVE));
+    }
+
+    // Prüft, dass unterschiedliche Entwicklerobjekte mit demselben Namen dieselbe Identität darstellen.
+    @Test
+    void developerWithSameNameCanJoinAndEstimate() {
+        ScrumMaster scrumMaster = new ScrumMaster("Mara");
+        Developer callingDeveloper = new Developer("Alex");
+        Developer joinedDeveloper = new Developer("Alex");
+        PlanningPokerBusiness business = createBusiness(scrumMaster, new Issue());
+
+        assertDoesNotThrow(() -> business.join(callingDeveloper, joinedDeveloper));
+        business.releaseActiveIssue(scrumMaster);
+
+        assertDoesNotThrow(() -> business.estimate(callingDeveloper, joinedDeveloper, CardValue.FIVE));
+    }
+
+    // Prüft, dass kein zweiter Entwickler mit einem bereits verwendeten Namen beitreten darf.
+    @Test
+    void developerWithDuplicateNameCannotJoin() {
+        ScrumMaster scrumMaster = new ScrumMaster("Mara");
+        Developer firstDeveloper = new Developer("Alex");
+        Developer duplicateDeveloper = new Developer("Alex");
+        PlanningPokerBusiness business = createBusiness(scrumMaster, new Issue());
+        business.join(firstDeveloper, firstDeveloper);
+
+        assertThrows(RuntimeException.class, () -> business.join(duplicateDeveloper, duplicateDeveloper));
+    }
+
     // Prüft, dass nach der Freigabe keine weiteren Entwickler beitreten dürfen.
     @Test
     void developerCannotJoinAfterRoundIsReleased() {

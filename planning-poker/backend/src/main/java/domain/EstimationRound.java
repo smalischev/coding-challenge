@@ -50,7 +50,7 @@ public class EstimationRound {
     }
 
     public void reveal(ScrumMaster scrumMaster, ScrumMaster owner) {
-        if (scrumMaster != owner) {
+        if (!scrumMaster.equals(owner)) {
             throw new IllegalArgumentException("only the scrum master can reveal the estimates");
         }
 
