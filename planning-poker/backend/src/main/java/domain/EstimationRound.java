@@ -35,6 +35,9 @@ public class EstimationRound {
         if (revealed) {
             throw new IllegalStateException("estimates cannot be changed after reveal");
         }
+        if (cardValue == null) {
+            throw new IllegalArgumentException("a card value is required");
+        }
 
         estimates.put(developer, cardValue);
     }

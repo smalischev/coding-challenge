@@ -374,6 +374,19 @@ class PlanningPokerBusinessTest {
                 EnumSet.copyOf(business.getEstimateValues().values()));
     }
 
+    // Prüft, dass eine Schätzung immer einen Wert aus dem Kartensatz enthalten muss.
+    @Test
+    void nullCardValueCannotBeEstimated() {
+        ScrumMaster scrumMaster = new ScrumMaster("Mara");
+        Developer developer = new Developer("Alex");
+        PlanningPokerBusiness business = createBusiness(scrumMaster, new Issue());
+        business.join(developer, developer);
+        business.releaseActiveIssue(scrumMaster);
+
+        assertThrows(IllegalArgumentException.class,
+                () -> business.estimate(developer, developer, null));
+    }
+
     // Prüft, dass der beim Beitritt angegebene Name in der Teilnehmerübersicht erhalten bleibt.
     @Test
     void joinedDeveloperIsVisibleWithName() {
