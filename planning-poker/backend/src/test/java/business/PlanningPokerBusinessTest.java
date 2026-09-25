@@ -15,6 +15,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 
 class PlanningPokerBusinessTest {
+    // Prüft, dass ein Entwickler erst nach Beitritt und Freigabe schätzen darf.
     @Test
     void join() {
         ScrumMaster scrumMaster = new ScrumMaster("test scrum master");
@@ -34,6 +35,7 @@ class PlanningPokerBusinessTest {
         planningPoker.estimate(developer, developer, CardValue.ONE);
     }
 
+    // Prüft den vollständigen Ablauf von der Sitzung bis zur Ergebnisübernahme.
     @Test
     void happyPath() {
         ScrumMaster scrumMaster = new ScrumMaster("Mara");
@@ -66,9 +68,10 @@ class PlanningPokerBusinessTest {
 
         business.finalizeResult(scrumMaster, CardValue.FIVE);
         assertTrue(issue.isApproved());
-        assertEquals(5, issue.getValue());
+        assertEquals(CardValue.FIVE, issue.getValue());
     }
 
+    // Prüft, dass vor der Freigabe keine Schätzung abgegeben werden darf.
     @Test
     void developerCannotEstimateBeforeRoundIsReleased() {
         ScrumMaster scrumMaster = new ScrumMaster("Mara");
@@ -80,6 +83,7 @@ class PlanningPokerBusinessTest {
                 () -> business.estimate(developer, developer, CardValue.FIVE));
     }
 
+    // Prüft, dass nur beigetretene Entwickler schätzen dürfen.
     @Test
     void unknownDeveloperCannotEstimate() {
         ScrumMaster scrumMaster = new ScrumMaster("Mara");
@@ -91,6 +95,7 @@ class PlanningPokerBusinessTest {
                 () -> business.estimate(unknownDeveloper, unknownDeveloper, CardValue.FIVE));
     }
 
+    // Prüft, dass Steuerungsaktionen ausschließlich dem Scrum Master vorbehalten sind.
     @Test
     void developerCannotPerformScrumMasterActions() {
         ScrumMaster scrumMaster = new ScrumMaster("Mara");
@@ -104,6 +109,7 @@ class PlanningPokerBusinessTest {
         );
     }
 
+    // Prüft, dass nach der Freigabe keine weiteren Entwickler beitreten dürfen.
     @Test
     void developerCannotJoinAfterRoundIsReleased() {
         ScrumMaster scrumMaster = new ScrumMaster("Mara");
@@ -114,6 +120,7 @@ class PlanningPokerBusinessTest {
         assertThrows(RuntimeException.class, () -> business.join(developer, developer));
     }
 
+    // Prüft, dass ein Entwickler nur einmal an der Sitzung teilnehmen kann.
     @Test
     void developerCannotJoinTwice() {
         ScrumMaster scrumMaster = new ScrumMaster("Mara");
@@ -124,6 +131,7 @@ class PlanningPokerBusinessTest {
         assertThrows(RuntimeException.class, () -> business.join(developer, developer));
     }
 
+    // Prüft, dass eine neue Schätzung desselben Entwicklers die vorherige ersetzt.
     @Test
     void secondEstimateReplacesFirstEstimate() {
         ScrumMaster scrumMaster = new ScrumMaster("Mara");
@@ -138,6 +146,7 @@ class PlanningPokerBusinessTest {
         assertEquals(CardValue.EIGHT, business.getDevelopersEstimated().get(developer));
     }
 
+    // Prüft, dass der Fortschritt abgestimmte und noch ausstehende Entwickler zeigt.
     @Test
     void progressShowsDeveloperWhoHasNotEstimatedYet() {
         ScrumMaster scrumMaster = new ScrumMaster("Mara");
@@ -154,6 +163,7 @@ class PlanningPokerBusinessTest {
         assertNull(business.getDevelopersEstimated().get(pendingDeveloper));
     }
 
+    // Prüft, dass der Scrum Master auch eine unvollständige Runde auflösen darf.
     @Test
     void scrumMasterCanRevealBeforeAllDevelopersEstimated() {
         ScrumMaster scrumMaster = new ScrumMaster("Mara");
@@ -165,6 +175,7 @@ class PlanningPokerBusinessTest {
         assertDoesNotThrow(() -> business.reveal(scrumMaster, scrumMaster));
     }
 
+    // Prüft, dass konkrete Kartenwerte vor der Auflösung verborgen bleiben.
     @Test
     void estimateValuesAreHiddenBeforeReveal() {
         ScrumMaster scrumMaster = new ScrumMaster("Mara");
@@ -177,6 +188,7 @@ class PlanningPokerBusinessTest {
         assertThrows(IllegalStateException.class, business::getEstimateValues);
     }
 
+    // Prüft, dass nach der Auflösung keine weitere Schätzung möglich ist.
     @Test
     void developerCannotEstimateAfterReveal() {
         ScrumMaster scrumMaster = new ScrumMaster("Mara");
@@ -190,6 +202,7 @@ class PlanningPokerBusinessTest {
                 () -> business.estimate(developer, developer, CardValue.FIVE));
     }
 
+    // Prüft, dass nur der Besitzer der Sitzung auflösen oder finalisieren darf.
     @Test
     void otherScrumMasterCannotRevealOrFinalizeRound() {
         ScrumMaster owner = new ScrumMaster("Mara");
@@ -205,6 +218,7 @@ class PlanningPokerBusinessTest {
         );
     }
 
+    // Prüft, dass ein Ergebnis erst nach der Auflösung finalisiert werden darf.
     @Test
     void resultCannotBeFinalizedBeforeReveal() {
         ScrumMaster scrumMaster = new ScrumMaster("Mara");
@@ -214,6 +228,7 @@ class PlanningPokerBusinessTest {
                 () -> business.finalizeResult(scrumMaster, CardValue.FIVE));
     }
 
+    // Prüft, dass Fragezeichen und Kaffeetasse als Ergebnis übernommen werden dürfen.
     @Test
     void questionMarkAndCoffeeCanBeFinalized() {
         ScrumMaster scrumMaster = new ScrumMaster("Mara");
@@ -228,6 +243,7 @@ class PlanningPokerBusinessTest {
         );
     }
 
+    // Prüft, dass eine neue Runde für dasselbe Issue die bisherigen Schätzungen leert.
     @Test
     void newRoundForSameIssueResetsEstimates() {
         ScrumMaster scrumMaster = new ScrumMaster("Mara");
@@ -243,6 +259,7 @@ class PlanningPokerBusinessTest {
         assertNull(business.getDevelopersEstimated().get(developer));
     }
 
+    // Prüft, dass das aktive Issue nur vor der Auflösung gewechselt werden darf.
     @Test
     void activeIssueCanChangeOnlyBeforeRoundIsRevealed() {
         ScrumMaster scrumMaster = new ScrumMaster("Mara");
