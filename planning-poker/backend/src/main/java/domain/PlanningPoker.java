@@ -26,9 +26,7 @@ public class PlanningPoker {
     }
 
     public void selectIssue(Member member, Issue issue) {
-        if(member.getRole() != Role.SCRUM_MASTER){
-            throw new NotAllowedException("not allowed, only scrum master");
-        }
+        ensureSessionOwner(member);
 
         if (currentRound != null && currentRound.isRevealed()) {
             throw new IllegalStateException("issue cannot be changed after the round was revealed");
@@ -43,9 +41,7 @@ public class PlanningPoker {
     }
 
     public void releaseActiveIssue(Member member) {
-        if(member.getRole() != Role.SCRUM_MASTER){
-            throw new NotAllowedException("not allowed, only scrum master");
-        }
+        ensureSessionOwner(member);
 
         if (currentRound == null || activeIssue == null) {
             throw new IllegalStateException("no issue selected");
@@ -55,9 +51,7 @@ public class PlanningPoker {
     }
 
     public void startNewRound(Member member) {
-        if(member.getRole() != Role.SCRUM_MASTER){
-            throw new NotAllowedException("not allowed, only scrum master");
-        }
+        ensureSessionOwner(member);
 
         if (activeIssue == null) {
             throw new IllegalStateException("no issue selected");
@@ -113,8 +107,9 @@ public class PlanningPoker {
     // nicht alle Teilnehmer geschätzt haben. Danach werden die Einzelwerte,
     // die Gruppenauswertung, der Durchschnitt und der häufigste Wert sichtbar.
     public void reveal(Member member, ScrumMaster scrumMaster) {
-        if(member.getRole() != Role.SCRUM_MASTER){
-            throw new NotAllowedException("not allowed, only scrum master");
+        ensureSessionOwner(member);
+        if (scrumMaster != owner) {
+            throw new NotAllowedException("not allowed, only the session owner can reveal estimates");
         }
 
         if (currentRound == null) {
@@ -134,7 +129,7 @@ public class PlanningPoker {
 
     public void finalizeResult(ScrumMaster scrumMaster, CardValue value) {
         if (scrumMaster != this.owner) {
-            throw new IllegalArgumentException("only the scrum master can finalize the result");
+            throw new NotAllowedException("not allowed, only the session owner can finalize the result");
         }
 
         if (activeIssue == null) {
@@ -182,5 +177,11 @@ public class PlanningPoker {
         }
 
         return currentRound.findMostFrequentValue();
+    }
+
+    private void ensureSessionOwner(Member member) {
+        if (member != owner) {
+            throw new NotAllowedException("not allowed, only the session owner can perform this action");
+        }
     }
 }

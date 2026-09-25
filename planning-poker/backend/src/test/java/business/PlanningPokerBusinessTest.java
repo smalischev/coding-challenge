@@ -220,18 +220,23 @@ class PlanningPokerBusinessTest {
                 () -> business.estimate(developer, developer, CardValue.FIVE));
     }
 
-    // Prüft, dass nur der Besitzer der Sitzung auflösen oder finalisieren darf.
+    // Prüft, dass nur der Besitzer der Sitzung Steuerungsaktionen ausführen darf.
     @Test
-    void otherScrumMasterCannotRevealOrFinalizeRound() {
+    void otherScrumMasterCannotPerformSessionOwnerActions() {
         ScrumMaster owner = new ScrumMaster("Mara");
         ScrumMaster otherScrumMaster = new ScrumMaster("Sam");
         PlanningPokerBusiness business = createBusiness(owner, new Issue());
-        business.releaseActiveIssue(owner);
 
         assertAll(
-                () -> assertThrows(IllegalArgumentException.class,
+                () -> assertThrows(NotAllowedException.class,
+                        () -> business.selectIssue(otherScrumMaster, new Issue())),
+                () -> assertThrows(NotAllowedException.class,
+                        () -> business.releaseActiveIssue(otherScrumMaster)),
+                () -> assertThrows(NotAllowedException.class,
+                        () -> business.startNewRound(otherScrumMaster)),
+                () -> assertThrows(NotAllowedException.class,
                         () -> business.reveal(otherScrumMaster, otherScrumMaster)),
-                () -> assertThrows(IllegalArgumentException.class,
+                () -> assertThrows(NotAllowedException.class,
                         () -> business.finalizeResult(otherScrumMaster, CardValue.FIVE))
         );
     }
