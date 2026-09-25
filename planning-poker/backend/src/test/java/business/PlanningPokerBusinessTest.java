@@ -44,9 +44,7 @@ class PlanningPokerBusinessTest {
         Developer firstDeveloper = new Developer("Alex");
         Developer secondDeveloper = new Developer("Kim");
         Issue issue = new Issue();
-        PlanningPokerBusiness business = new PlanningPokerBusiness();
-
-        business.createPlanningPoker(scrumMaster, 123L, issue);
+        PlanningPokerBusiness business = createBusiness(scrumMaster, issue);
         business.join(firstDeveloper, firstDeveloper);
         business.join(secondDeveloper, secondDeveloper);
 
@@ -485,7 +483,7 @@ class PlanningPokerBusinessTest {
     }
 
     private PlanningPokerBusiness createBusiness(ScrumMaster scrumMaster, Issue issue) {
-        PlanningPokerBusiness business = new PlanningPokerBusiness();
+        PlanningPokerBusiness business = new PlanningPokerBusiness((projectId, issueIid, label) -> { });
         business.createPlanningPoker(scrumMaster, 123L, issue);
         return business;
     }
@@ -496,4 +494,5 @@ class PlanningPokerBusinessTest {
         business.reveal(scrumMaster, scrumMaster);
         return business;
     }
+
 }

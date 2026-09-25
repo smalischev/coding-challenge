@@ -1,12 +1,23 @@
 package business;
 
 import domain.*;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 
 import java.util.Map;
 import java.util.OptionalInt;
 
+@ApplicationScoped
 public class PlanningPokerBusiness {
+    private static final String PLANNING_POKER_LABEL_PREFIX = "planning-poker::";
+
+    private final GitLabIssueGateway gitLabIssueGateway;
     private PlanningPoker planningPoker;
+
+    @Inject
+    public PlanningPokerBusiness(GitLabIssueGateway gitLabIssueGateway) {
+        this.gitLabIssueGateway = gitLabIssueGateway;
+    }
 
     //Scrum master ertellt eine neue planning-poker-sitzung
     public void createPlanningPoker(ScrumMaster scrumMaster, long gitlabProjectID, Issue issue){
@@ -46,9 +57,15 @@ public class PlanningPokerBusiness {
     }
 
     // (B) wert in das Gitlab-Issue übernehmen
-    public void takeToGitlab(){
-        //TODO: scrum master wählt vereinbarten Wert und bestätigt die Runde
-        //TODO: Wert wird dem Gitlab-Issue hinterlegt - wie und in welcher Form ist Teil der Aufgabe; in readme dokumentieren
+    public void takeToGitlab(ScrumMaster scrumMaster, CardValue value) {
+        Issue issue = planningPoker.finalizeResult(scrumMaster, value);
+        String label = PLANNING_POKER_LABEL_PREFIX + value.getLabelValue();
+
+        gitLabIssueGateway.addScopedLabel(
+                planningPoker.getGitlabProjectId(),
+                issue.getGitlabIssueIid(),
+                label
+        );
     }
 
     public EstimationProgress getEstimationProgress(){

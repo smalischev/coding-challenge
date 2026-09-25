@@ -1,11 +1,21 @@
 package domain;
 
 public class Issue {
-    private int id;
+    private final long gitlabIssueIid;
     private boolean approved;
     private CardValue value;
 
-    public Issue(){}
+    public Issue() {
+        this(0);
+    }
+
+    public Issue(long gitlabIssueIid) {
+        this.gitlabIssueIid = gitlabIssueIid;
+    }
+
+    public long getGitlabIssueIid() {
+        return gitlabIssueIid;
+    }
 
     public CardValue getValue(){
         return this.value;

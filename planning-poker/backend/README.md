@@ -55,3 +55,16 @@ Wie das Frontend mit dem Backend kommuniziert – Protokoll, Datenformat, Schnit
 ## Abgabe
 
 Bitte stelle das Projekt als Git-Repository zur Verfügung (bevorzugt auf GitHub/GitLab). Gib eine Anleitung zur Einrichtung und zum Starten der Anwendung im `README.md` an. Dokumentiere außerdem die Schnittstellendefinition so, dass das Frontend ohne Rückfragen integriert werden kann.
+
+## Speicherung des Planning-Poker-Ergebnisses
+
+Das bestätigte Ergebnis wird als scoped GitLab-Label im Format
+`planning-poker::<wert>` am Issue gespeichert, zum Beispiel
+`planning-poker::8`. Für Sonderkarten werden die textuellen Werte
+`planning-poker::question-mark` und `planning-poker::coffee` verwendet.
+
+Diese Lösung wurde gewählt, weil Labels direkt am Issue sichtbar, nach dem
+Ergebnis filterbar und für weitere Automatisierungen einfach nutzbar sind.
+Durch den gemeinsamen Scope `planning-poker` kann ein Issue nur einen
+aktuellen Planning-Poker-Wert besitzen. Änderungen an Labels werden außerdem
+in der GitLab-Historie des Issues nachvollziehbar festgehalten.

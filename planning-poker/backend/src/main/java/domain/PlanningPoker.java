@@ -134,7 +134,7 @@ public class PlanningPoker {
         return currentRound.getEstimateValues();
     }
 
-    public void finalizeResult(ScrumMaster scrumMaster, CardValue value) {
+    public Issue finalizeResult(ScrumMaster scrumMaster, CardValue value) {
         if (!scrumMaster.equals(this.owner)) {
             throw new NotAllowedException("not allowed, only the session owner can finalize the result");
         }
@@ -148,6 +148,11 @@ public class PlanningPoker {
         }
 
         activeIssue.approve(value);
+        return activeIssue;
+    }
+
+    public long getGitlabProjectId() {
+        return gitlabProjektID;
     }
 
     public EstimationProgress getEstimationProgress() {
