@@ -61,6 +61,9 @@ public class PlanningPoker {
         if (activeIssue == null) {
             throw new IllegalStateException("no issue selected");
         }
+        if (currentRound == null || !currentRound.isRevealed()) {
+            throw new IllegalStateException("current estimation round has not been revealed yet");
+        }
 
         this.currentRound = new EstimationRound(activeIssue);
     }
