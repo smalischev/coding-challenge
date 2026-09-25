@@ -4,6 +4,7 @@ import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.OptionalInt;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -80,24 +81,30 @@ public class EstimationRound {
                 ));
     }
 
-    public int calculateAverage() {
+    public OptionalInt calculateAverage() {
         ensureRevealed();
 
-        return (int) estimates.values().stream()
+        var average = estimates.values().stream()
                 .filter(CardValue::isNumeric)
                 .mapToInt(CardValue::getNumericValue)
-                .average()
-                .orElse(0);
+                .average();
+
+        if (average.isEmpty()) {
+            return OptionalInt.empty();
+        }
+
+        return OptionalInt.of((int) average.getAsDouble());
     }
 
-    public int findMostFrequentValue() {
+    public OptionalInt findMostFrequentValue() {
         ensureRevealed();
 
         return groupEstimates().entrySet().stream()
                 .filter(entry -> entry.getKey().isNumeric())
                 .max(Map.Entry.comparingByValue())
                 .map(entry -> entry.getKey().getNumericValue())
-                .orElse(0);
+                .map(OptionalInt::of)
+                .orElseGet(OptionalInt::empty);
     }
 
     public Set<Developer> getEstimatedDevelopers() {

@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.OptionalInt;
 import java.util.Set;
 
 public class PlanningPoker {
@@ -169,7 +170,7 @@ public class PlanningPoker {
         return currentRound.groupEstimates();
     }
 
-    public int calculateAverage() {
+    public OptionalInt calculateAverage() {
         if (currentRound == null) {
             throw new IllegalStateException("no active estimation round");
         }
@@ -177,7 +178,7 @@ public class PlanningPoker {
         return currentRound.calculateAverage();
     }
 
-    public int findMostFrequentValue() {
+    public OptionalInt findMostFrequentValue() {
         if (currentRound == null) {
             throw new IllegalStateException("no active estimation round");
         }

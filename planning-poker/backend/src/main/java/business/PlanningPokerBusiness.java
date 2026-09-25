@@ -3,6 +3,7 @@ package business;
 import domain.*;
 
 import java.util.Map;
+import java.util.OptionalInt;
 
 public class PlanningPokerBusiness {
     private PlanningPoker planningPoker;
@@ -66,11 +67,11 @@ public class PlanningPokerBusiness {
         return planningPoker.groupEstimates();
     }
 
-    public int calculateAverage() {
+    public OptionalInt calculateAverage() {
         return planningPoker.calculateAverage();
     }
 
-    public int findMostFrequentValue() {
+    public OptionalInt findMostFrequentValue() {
         return planningPoker.findMostFrequentValue();
     }
 

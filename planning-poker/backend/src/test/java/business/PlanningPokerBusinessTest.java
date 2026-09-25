@@ -64,7 +64,7 @@ class PlanningPokerBusinessTest {
         business.reveal(scrumMaster, scrumMaster);
         assertEquals(Map.of(firstDeveloper, CardValue.FIVE, secondDeveloper, CardValue.EIGHT),
                 business.getEstimateValues());
-        assertEquals(6, business.calculateAverage());
+        assertEquals(6, business.calculateAverage().orElseThrow());
         assertEquals(1L, business.groupEstimates().get(CardValue.FIVE));
         assertEquals(1L, business.groupEstimates().get(CardValue.EIGHT));
 
@@ -372,7 +372,25 @@ class PlanningPokerBusinessTest {
         business.estimate(thirdDeveloper, thirdDeveloper, CardValue.EIGHT);
         business.reveal(scrumMaster, scrumMaster);
 
-        assertEquals(5, business.findMostFrequentValue());
+        assertEquals(5, business.findMostFrequentValue().orElseThrow());
+    }
+
+    // Prüft, dass Fragezeichen und Kaffeetasse nicht als numerische Auswertung gelten.
+    @Test
+    void statisticsAreEmptyWhenOnlySpecialCardsWereEstimated() {
+        ScrumMaster scrumMaster = new ScrumMaster("Mara");
+        Developer firstDeveloper = new Developer("Alex");
+        Developer secondDeveloper = new Developer("Kim");
+        PlanningPokerBusiness business = createBusiness(scrumMaster, new Issue());
+        business.join(firstDeveloper, firstDeveloper);
+        business.join(secondDeveloper, secondDeveloper);
+        business.releaseActiveIssue(scrumMaster);
+        business.estimate(firstDeveloper, firstDeveloper, CardValue.QUESTION_MARK);
+        business.estimate(secondDeveloper, secondDeveloper, CardValue.COFFEE);
+        business.reveal(scrumMaster, scrumMaster);
+
+        assertTrue(business.calculateAverage().isEmpty());
+        assertTrue(business.findMostFrequentValue().isEmpty());
     }
 
     // Prüft, dass eine neue Runde für dasselbe Issue erst nach der Auflösung starten darf.
