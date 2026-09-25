@@ -99,10 +99,6 @@ public class EstimationRound {
             throw new IllegalStateException("estimation round has not been revealed yet");
         }
 
-        if (value == null || !value.isNumeric()) {
-            throw new IllegalArgumentException("only numeric card values can be finalized");
-        }
-
         this.issue.approve(value);
     }
 }

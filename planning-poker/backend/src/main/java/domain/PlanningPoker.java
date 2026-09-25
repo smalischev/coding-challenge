@@ -132,14 +132,13 @@ public class PlanningPoker {
         if (scrumMaster != this.owner) {
             throw new IllegalArgumentException("only the scrum master can finalize the result");
         }
+
         if (activeIssue == null) {
             throw new IllegalStateException("no issue selected");
         }
+
         if (currentRound == null || !currentRound.isRevealed()) {
             throw new IllegalStateException("estimation round has not been revealed yet");
-        }
-        if (value == null || !value.isNumeric()) {
-            throw new IllegalArgumentException("only numeric card values can be finalized");
         }
 
         activeIssue.approve(value);

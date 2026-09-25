@@ -3,11 +3,11 @@ package domain;
 public class Issue {
     private int id;
     private boolean approved;
-    private int value;
+    private CardValue value;
 
     public Issue(){}
 
-    public int getValue(){
+    public CardValue getValue(){
         return this.value;
     }
 
@@ -16,7 +16,11 @@ public class Issue {
     }
 
     public void approve(CardValue value){
-        this.value = value.getNumericValue();
+        if (value == null) {
+            throw new IllegalArgumentException("a card value is required");
+        }
+
+        this.value = value;
         this.approved = true;
     }
 }
