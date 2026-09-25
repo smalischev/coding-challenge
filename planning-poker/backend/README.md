@@ -68,3 +68,33 @@ Ergebnis filterbar und für weitere Automatisierungen einfach nutzbar sind.
 Durch den gemeinsamen Scope `planning-poker` kann ein Issue nur einen
 aktuellen Planning-Poker-Wert besitzen. Änderungen an Labels werden außerdem
 in der GitLab-Historie des Issues nachvollziehbar festgehalten.
+
+## Einrichtung und Start mit Docker
+
+Voraussetzung ist eine aktuelle Docker-Installation mit Docker Compose.
+
+Zuerst wird die Vorlage für die lokalen GitLab-Zugangsdaten kopiert:
+
+```bash
+cp .env.example .env
+```
+
+Danach sind in `.env` die folgenden Werte zu setzen:
+
+```properties
+GITLAB_URL=https://gitlab.com
+GITLAB_TOKEN=<persönlicher-gitlab-access-token>
+```
+
+Bei einer selbst gehosteten GitLab-Instanz enthält `GITLAB_URL` nur die
+Basis-URL der Instanz, beispielsweise `https://gitlab.example.com`. Der
+REST-Client ergänzt den API-Pfad selbst.
+
+Die Anwendung wird anschließend einschließlich Image-Build gestartet:
+
+```bash
+docker compose up --build
+```
+
+Das Backend ist danach unter `http://localhost:8080` erreichbar. Die Datei
+`.env` enthält Zugangsdaten und wird nicht in Git eingecheckt.
