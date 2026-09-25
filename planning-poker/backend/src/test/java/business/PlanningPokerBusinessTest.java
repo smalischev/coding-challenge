@@ -12,7 +12,6 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -54,9 +53,9 @@ class PlanningPokerBusinessTest {
         business.releaseActiveIssue(scrumMaster);
         business.estimate(firstDeveloper, firstDeveloper, CardValue.FIVE);
 
-        Map<Developer, CardValue> estimationProgress = business.getDevelopersEstimated();
-        assertEquals(CardValue.FIVE, estimationProgress.get(firstDeveloper));
-        assertNull(estimationProgress.get(secondDeveloper));
+        EstimationProgress estimationProgress = business.getEstimationProgress();
+        assertTrue(estimationProgress.estimatedDevelopers().contains(firstDeveloper));
+        assertTrue(estimationProgress.pendingDevelopers().contains(secondDeveloper));
         assertFalse(business.allDevelopersEstimated());
 
         business.estimate(secondDeveloper, secondDeveloper, CardValue.EIGHT);
@@ -161,7 +160,8 @@ class PlanningPokerBusinessTest {
         business.estimate(developer, developer, CardValue.THREE);
         business.estimate(developer, developer, CardValue.EIGHT);
 
-        assertEquals(CardValue.EIGHT, business.getDevelopersEstimated().get(developer));
+        business.reveal(scrumMaster, scrumMaster);
+        assertEquals(CardValue.EIGHT, business.getEstimateValues().get(developer));
     }
 
     // Prüft, dass der Fortschritt abgestimmte und noch ausstehende Entwickler zeigt.
@@ -177,8 +177,8 @@ class PlanningPokerBusinessTest {
         business.estimate(estimatedDeveloper, estimatedDeveloper, CardValue.FIVE);
 
         assertFalse(business.allDevelopersEstimated());
-        assertEquals(CardValue.FIVE, business.getDevelopersEstimated().get(estimatedDeveloper));
-        assertNull(business.getDevelopersEstimated().get(pendingDeveloper));
+        assertTrue(business.getEstimationProgress().estimatedDevelopers().contains(estimatedDeveloper));
+        assertTrue(business.getEstimationProgress().pendingDevelopers().contains(pendingDeveloper));
     }
 
     // Prüft, dass der Scrum Master auch eine unvollständige Runde auflösen darf.
@@ -274,7 +274,7 @@ class PlanningPokerBusinessTest {
 
         business.startNewRound(scrumMaster);
 
-        assertNull(business.getDevelopersEstimated().get(developer));
+        assertTrue(business.getEstimationProgress().pendingDevelopers().contains(developer));
     }
 
     // Prüft, dass das aktive Issue nur vor der Auflösung gewechselt werden darf.
@@ -331,7 +331,7 @@ class PlanningPokerBusinessTest {
 
         business.selectIssue(scrumMaster, new Issue());
 
-        assertNull(business.getDevelopersEstimated().get(developer));
+        assertTrue(business.getEstimationProgress().pendingDevelopers().contains(developer));
     }
 
     // Prüft, dass Fragezeichen und Kaffeetasse als gewähltes Ergebnis im Issue gespeichert werden.
@@ -383,7 +383,7 @@ class PlanningPokerBusinessTest {
 
         business.join(developer, developer);
 
-        assertTrue(business.getDevelopersEstimated().keySet().stream()
+        assertTrue(business.getEstimationProgress().pendingDevelopers().stream()
                 .map(Developer::getName)
                 .anyMatch("Alex"::equals));
     }

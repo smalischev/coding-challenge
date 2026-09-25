@@ -44,14 +44,14 @@ public class PlanningPokerBusiness {
         planningPoker.startNewRound(member);
     }
 
-    public Map<Developer, CardValue> getDevelopersEstimated(){
-        return planningPoker.getDevelopersEstimated();
-    }
-
     // (B) wert in das Gitlab-Issue übernehmen
     public void takeToGitlab(){
         //TODO: scrum master wählt vereinbarten Wert und bestätigt die Runde
         //TODO: Wert wird dem Gitlab-Issue hinterlegt - wie und in welcher Form ist Teil der Aufgabe; in readme dokumentieren
+    }
+
+    public EstimationProgress getEstimationProgress(){
+        return planningPoker.getEstimationProgress();
     }
 
     public boolean allDevelopersEstimated() {

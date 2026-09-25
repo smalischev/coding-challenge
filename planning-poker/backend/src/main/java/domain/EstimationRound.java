@@ -4,6 +4,7 @@ import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -90,8 +91,8 @@ public class EstimationRound {
                 .orElse(0);
     }
 
-    public Map<Developer, CardValue> getDevelopersEstimated() {
-        return Map.copyOf(estimates);
+    public Set<Developer> getEstimatedDevelopers() {
+        return Set.copyOf(estimates.keySet());
     }
 
     public void finalizeResult(ScrumMaster scrumMaster, CardValue value) {

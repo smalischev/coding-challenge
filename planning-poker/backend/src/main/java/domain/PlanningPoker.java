@@ -1,9 +1,10 @@
 package domain;
 
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class PlanningPoker {
     private final Session session;
@@ -147,16 +148,16 @@ public class PlanningPoker {
         activeIssue.approve(value);
     }
 
-    public Map<Developer, CardValue> getDevelopersEstimated() {
+    public EstimationProgress getEstimationProgress() {
         if (currentRound == null) {
             throw new IllegalStateException("no active estimation round");
         }
 
-        Map<Developer, CardValue> estimatedDevelopers = currentRound.getDevelopersEstimated();
+        Set<Developer> estimatedDevelopers = currentRound.getEstimatedDevelopers();
+        Set<Developer> pendingDevelopers = new LinkedHashSet<>(developers);
+        pendingDevelopers.removeAll(estimatedDevelopers);
 
-        Map<Developer, CardValue> result = new LinkedHashMap<>();
-        developers.forEach(developer -> result.put(developer, estimatedDevelopers.get(developer)));
-        return result;
+        return new EstimationProgress(estimatedDevelopers, pendingDevelopers);
     }
 
     public Map<CardValue, Long> groupEstimates() {
