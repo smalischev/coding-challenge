@@ -1,4 +1,4 @@
 package auth;
-
-public record UserAccount(String username, String passwordHash) {
+import domain.Role;
+public record UserAccount(String username, String passwordHash, Role role) {
 }

@@ -6,4 +6,8 @@ services:
     environment:
       GITLAB_URL: ${GITLAB_URL}
       GITLAB_TOKEN: ${GITLAB_TOKEN}
-      JWT_SECRET: ${JWT_SECRET}
+      JWT_PRIVATE_KEY_LOCATION: file:/run/secrets/jwt-private-key.pem
+      JWT_PUBLIC_KEY_LOCATION: file:/run/secrets/jwt-public-key.pem
+    volumes:
+      - ${JWT_PRIVATE_KEY_FILE}:/run/secrets/jwt-private-key.pem:ro
+      - ${JWT_PUBLIC_KEY_FILE}:/run/secrets/jwt-public-key.pem:ro
