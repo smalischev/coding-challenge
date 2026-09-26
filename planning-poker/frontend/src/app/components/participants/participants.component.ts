@@ -10,5 +10,7 @@ import { Participant } from '../../models';
 export class ParticipantsComponent {
   @Input({ required: true }) participants: Participant[] = [];
   @Input({ required: true }) currentUserName = '';
-  get estimatedCount(): number { return this.participants.filter((person) => person.estimated).length; }
+  get estimatedCount(): number {
+    return this.participants.filter((person) => person.estimated).length;
+  }
 }
