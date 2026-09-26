@@ -4,6 +4,7 @@ services:
     ports:
       - "8080:8080"
     environment:
+      QUARKUS_PROFILE: dev
       GITLAB_URL: ${GITLAB_URL}
       GITLAB_TOKEN: ${GITLAB_TOKEN}
       JWT_PRIVATE_KEY_LOCATION: file:/run/secrets/jwt-private-key.pem

@@ -8,6 +8,7 @@ import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 
 @ApplicationScoped
+@RestGitLab
 public class GitLabRestIssueGateway implements GitLabIssueGateway {
     @Inject
     @RestClient
