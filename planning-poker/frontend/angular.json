@@ -36,6 +36,14 @@
           "builder": "@angular/build:dev-server",
           "configurations": { "production": { "buildTarget": "planning-poker-frontend:build:production" }, "development": { "buildTarget": "planning-poker-frontend:build:development" } },
           "defaultConfiguration": "development"
+        },
+        "test": {
+          "builder": "@angular/build:unit-test",
+          "options": {
+            "buildTarget": "planning-poker-frontend:build:development",
+            "tsConfig": "tsconfig.spec.json",
+            "runner": "vitest"
+          }
         }
       }
     }

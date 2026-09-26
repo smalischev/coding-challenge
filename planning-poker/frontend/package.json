@@ -4,7 +4,8 @@
   "private": true,
   "scripts": {
     "start": "ng serve --host 0.0.0.0",
-    "build": "ng build"
+    "build": "ng build",
+    "test": "ng test --watch=false"
   },
   "dependencies": {
     "@angular/common": "^20.3.0",
@@ -12,6 +13,7 @@
     "@angular/core": "^20.3.0",
     "@angular/forms": "^20.3.32",
     "@angular/platform-browser": "^20.3.0",
+    "@angular/router": "^20.3.32",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",
     "zone.js": "~0.15.0"
@@ -20,6 +22,8 @@
     "@angular/build": "^20.3.0",
     "@angular/cli": "^20.3.11",
     "@angular/compiler-cli": "^20.3.0",
-    "typescript": "~5.8.2"
+    "jsdom": "^29.1.1",
+    "typescript": "~5.8.2",
+    "vitest": "^3.2.7"
   }
 }

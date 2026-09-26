@@ -1,7 +1,7 @@
 import { Injectable, signal } from '@angular/core';
-import { Observable, finalize, map, of, tap } from 'rxjs';
-import { ApiRole, Credentials } from '../api/planning-poker-api.models';
-import { PlanningPokerApiService } from '../api/planning-poker-api.service';
+import { Observable, finalize, map, of } from 'rxjs';
+import { ApiRole, Credentials } from '../../core/api/planning-poker-api.models';
+import { PlanningPokerApiService } from '../../core/api/planning-poker-api.service';
 
 export interface AuthenticatedUser {
   username: string;
@@ -14,7 +14,7 @@ interface StoredSession {
 }
 
 @Injectable({ providedIn: 'root' })
-export class AuthSessionService {
+export class AuthenticationService {
   private readonly storageKey = 'planning-poker.session';
   readonly user = signal<AuthenticatedUser | null>(this.readStoredSession()?.user ?? null);
 

@@ -12,9 +12,9 @@
   Ansichten für Registrierung, Login und Logout sind mit dem vorhandenen API-Service verbunden. Das JWT wird für die Browser-Session gehalten; Rolle und angemeldeter Benutzer werden danach in den Signal-Store übernommen.
 
 
-- [ ] **CORS im Backend für das Frontend freigeben**
+- [x] **CORS im Backend für das Frontend freigeben**
 
-  Das Quarkus-Backend muss Browser-Anfragen des Angular-Frontends erlauben, beispielsweise von `http://localhost:4200`. Ohne diese Konfiguration blockiert der Browser die Authentifizierungsanfragen trotz vorhandener Frontend-Anbindung.
+  Das Quarkus-Backend erlaubt Browser-Anfragen des Angular-Frontends von `http://localhost:4200` und `http://69.62.113.205:4200`; die jeweiligen Preflights wurden erfolgreich geprüft.
 
 
 - [x] **Development-Login ohne Backend ergänzen**
@@ -22,9 +22,9 @@
   Im Development-Build steht eine nicht persistierte lokale Demo-Session für Anna als Scrum Master bereit. Im Production-Build ist diese Option ausgeblendet und sendet keine Backend-Anfrage.
 
 
-- [ ] **Backend lokal starten und Frontend-Verbindung prüfen**
+- [x] **Backend lokal starten und Frontend-Verbindung prüfen**
 
-  Backend gemäß dessen README mit JWT-Schlüsseln und GitLab-Konfiguration starten, CORS prüfen und die Authentifizierungsanfragen des Frontends gegen die laufende Instanz testen.
+  Backend gemäß dessen README mit JWT-Schlüsseln gestartet. OpenAPI, CORS-Preflight sowie Registrierung und Login wurden erfolgreich gegen die laufende Instanz geprüft.
 
 
 - [ ] **Vertikalen Backend-Ablauf integrieren und testen**
