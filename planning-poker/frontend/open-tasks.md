@@ -52,9 +52,9 @@
   Einzelwerte, Gruppierung, Durchschnitt und häufigsten Wert werden nach dem Aufdecken über die Ergebnis-Endpunkte geladen und dynamisch dargestellt. Die Balkendiagrammwerte leiten sich aus der Backend-Verteilung ab; Scrum Master erscheinen nicht als Schätzer.
 
 
-- [ ] **Finales Ergebnis nach GitLab übernehmen**
+- [x] **Finales Ergebnis nach GitLab übernehmen**
 
-  Nach dem Aufdecken eine Auswahl ausschließlich aus dem definierten Kartensatz anbieten und die bestätigte Karte in GitLab übernehmen.
+  Nach dem Aufdecken kann der Scrum Master ausschließlich eine Karte aus dem definierten Kartensatz wählen und bestätigen. Die Auswahl ruft den Ergebnis-Endpunkt auf; der Ablauf wurde im Backend-Profil `dev` gegen das injizierte GitLab-Mock-Gateway mit `204` geprüft.
 
 
 - [ ] **Sitzungsprotokoll für abgeschlossene Runden anzeigen**

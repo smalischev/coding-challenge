@@ -31,6 +31,8 @@ export class PokerBoardComponent {
   readonly store = inject(PokerSessionStore);
   readonly environment = environment;
   readonly error = signal('');
+  readonly finalizingResult = signal(false);
+  readonly resultMessage = signal('');
   private readonly authentication = inject(AuthenticationService);
   private readonly router = inject(Router);
   private readonly sessions = inject(SessionService);
@@ -91,6 +93,15 @@ export class PokerBoardComponent {
   }
 
   startNewRound(): void { this.estimations.startNewRound(this.store.sessionId(), { scrumMasterName: this.store.currentUser().name }).subscribe({ next: () => this.store.startNewRound(), error: () => this.error.set('Die neue Runde konnte nicht gestartet werden.') }); }
+
+  finalizeResult(card: CardValue): void {
+    this.finalizingResult.set(true);
+    this.resultMessage.set('');
+    this.results.finalize(this.store.sessionId(), { scrumMasterName: this.store.currentUser().name, value: this.toBackendCard(card) }).subscribe({
+      next: () => { this.finalizingResult.set(false); this.resultMessage.set(`Ergebnis ${card} wurde an GitLab übergeben.`); },
+      error: () => { this.finalizingResult.set(false); this.error.set('Das Ergebnis konnte nicht an GitLab übergeben werden.'); }
+    });
+  }
 
   private loadActiveIssue(): void { this.issues.getActive(this.store.sessionId()).subscribe({ next: (issue) => this.store.setActiveIssue(this.toIssue(issue)), error: () => this.error.set('Das aktive Issue konnte nicht geladen werden.') }); }
   private refreshProgress(): void { this.estimations.getProgress(this.store.sessionId()).subscribe({ next: (progress) => this.store.setProgress(progress.estimatedDevelopers, progress.pendingDevelopers) }); }

@@ -23,7 +23,8 @@
       }
       @if (store.revealed()) { <app-results></app-results> }
       @if (store.releasedIssue() && store.currentUser().role === 'Scrum Master') {
-        <app-moderator-controls [allEstimated]="store.allEstimated()" [revealed]="store.revealed()" (reveal)="revealRound()" (newRound)="startNewRound()"></app-moderator-controls>
+        <app-moderator-controls [allEstimated]="store.allEstimated()" [revealed]="store.revealed()" [finalizing]="finalizingResult()" (reveal)="revealRound()" (newRound)="startNewRound()" (finalize)="finalizeResult($event)"></app-moderator-controls>
+        @if (resultMessage()) { <p class="result-message">{{ resultMessage() }}</p> }
       }
     </div>
   </div>
