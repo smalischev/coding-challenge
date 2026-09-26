@@ -10,6 +10,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.Map;
+import java.util.UUID;
 
 import static io.restassured.RestAssured.given;
 import static io.restassured.http.ContentType.JSON;
@@ -24,13 +25,20 @@ class PlanningPokerResourceTest {
     private String scrumMasterToken;
     private String alexToken;
     private String kimToken;
+    private String scrumMasterName;
+    private String alexName;
+    private String kimName;
 
     @BeforeEach
     void authenticate() {
         RestAssured.requestSpecification = null;
-        scrumMasterToken = registerAndLogin("Mara", "SCRUM_MASTER");
-        alexToken = registerAndLogin("Alex", "DEVELOPER");
-        kimToken = registerAndLogin("Kim", "DEVELOPER");
+        String testRun = UUID.randomUUID().toString();
+        scrumMasterName = "Mara-" + testRun;
+        alexName = "Alex-" + testRun;
+        kimName = "Kim-" + testRun;
+        scrumMasterToken = registerAndLogin(scrumMasterName, "SCRUM_MASTER");
+        alexToken = registerAndLogin(alexName, "DEVELOPER");
+        kimToken = registerAndLogin(kimName, "DEVELOPER");
     }
 
     // Prüft den vollständigen REST-Ablauf einer Planning-Poker-Session.
@@ -38,39 +46,39 @@ class PlanningPokerResourceTest {
     void planningPokerSessionCanBeManagedThroughRestEndpoints() {
         String planningPokerId = as(scrumMasterToken)
                 .contentType(JSON)
-                .body(Map.of("scrumMasterName", "Mara", "gitlabProjectId", 123, "gitlabIssueIid", 42))
+                .body(Map.of("scrumMasterName", scrumMasterName, "gitlabProjectId", 123, "gitlabIssueIid", 42))
                 .when().post("/planning-pokers")
                 .then().statusCode(201)
                 .extract().path("planningPokerId");
 
-        as(scrumMasterToken).contentType(JSON).body(Map.of("scrumMasterName", "Mara", "gitlabIssueIid", 42))
+        as(scrumMasterToken).contentType(JSON).body(Map.of("scrumMasterName", scrumMasterName, "gitlabIssueIid", 42))
                 .when().put("/planning-pokers/{id}/active-issue", planningPokerId)
                 .then().statusCode(204);
 
-        join(planningPokerId, "Alex", alexToken);
-        join(planningPokerId, "Kim", kimToken);
+        join(planningPokerId, alexName, alexToken);
+        join(planningPokerId, kimName, kimToken);
 
         as(scrumMasterToken).when().get("/planning-pokers/{id}/active-round/progress", planningPokerId)
                 .then().statusCode(200)
                 .body("estimatedDevelopers", equalTo(java.util.List.of()))
-                .body("pendingDevelopers", containsInAnyOrder("Alex", "Kim"));
+                .body("pendingDevelopers", containsInAnyOrder(alexName, kimName));
 
-        as(scrumMasterToken).contentType(JSON).body(Map.of("scrumMasterName", "Mara"))
+        as(scrumMasterToken).contentType(JSON).body(Map.of("scrumMasterName", scrumMasterName))
                 .when().post("/planning-pokers/{id}/active-issue/release", planningPokerId)
                 .then().statusCode(204);
 
-        estimate(planningPokerId, "Alex", "FIVE", alexToken);
-        estimate(planningPokerId, "Kim", "EIGHT", kimToken);
+        estimate(planningPokerId, alexName, "FIVE", alexToken);
+        estimate(planningPokerId, kimName, "EIGHT", kimToken);
 
         as(scrumMasterToken).when().get("/planning-pokers/{id}/active-round/all-developers-estimated", planningPokerId)
                 .then().statusCode(200).body("allDevelopersEstimated", equalTo(true));
 
-        as(scrumMasterToken).contentType(JSON).body(Map.of("scrumMasterName", "Mara"))
+        as(scrumMasterToken).contentType(JSON).body(Map.of("scrumMasterName", scrumMasterName))
                 .when().post("/planning-pokers/{id}/active-round/reveal", planningPokerId)
                 .then().statusCode(204);
 
         as(scrumMasterToken).when().get("/planning-pokers/{id}/active-round/estimates", planningPokerId)
-                .then().statusCode(200).body("developerName", containsInAnyOrder("Alex", "Kim"));
+                .then().statusCode(200).body("developerName", containsInAnyOrder(alexName, kimName));
         as(scrumMasterToken).when().get("/planning-pokers/{id}/active-round/estimate-groups", planningPokerId)
                 .then().statusCode(200).body("FIVE", equalTo(1)).body("EIGHT", equalTo(1));
         as(scrumMasterToken).when().get("/planning-pokers/{id}/active-round/average", planningPokerId)
@@ -78,14 +86,24 @@ class PlanningPokerResourceTest {
         as(scrumMasterToken).when().get("/planning-pokers/{id}/active-round/most-frequent-value", planningPokerId)
                 .then().statusCode(200).body("value", equalTo(5));
 
-        as(scrumMasterToken).contentType(JSON).body(Map.of("scrumMasterName", "Mara", "value", "FIVE"))
+        as(scrumMasterToken).contentType(JSON).body(Map.of("scrumMasterName", scrumMasterName, "value", "FIVE"))
                 .when().post("/planning-pokers/{id}/active-round/result", planningPokerId)
                 .then().statusCode(204);
         verify(gitLabIssueGateway).addScopedLabel(123L, 42L, "planning-poker::5");
 
-        as(scrumMasterToken).contentType(JSON).body(Map.of("scrumMasterName", "Mara"))
+        as(scrumMasterToken).contentType(JSON).body(Map.of("scrumMasterName", scrumMasterName))
                 .when().post("/planning-pokers/{id}/active-round", planningPokerId)
                 .then().statusCode(204);
+    }
+
+    // Prüft, dass ein Developer keine Planning-Poker-Session erstellen darf, weil dies dem Scrum Master vorbehalten ist.
+    @Test
+    void developerCannotCreatePlanningPokerSession() {
+        as(alexToken)
+                .contentType(JSON)
+                .body(Map.of("gitlabProjectId", 123, "gitlabIssueIid", 42))
+                .when().post("/planning-pokers")
+                .then().statusCode(403);
     }
 
     private String registerAndLogin(String username, String role) {
