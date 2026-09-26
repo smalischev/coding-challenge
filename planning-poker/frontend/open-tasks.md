@@ -7,9 +7,29 @@
   Derzeit muss ein Benutzer vor dem Erstellen bereits mit der Rolle `SCRUM_MASTER` registriert sein; der übermittelte `scrumMasterName` wird beim Erstellen der Sitzung nicht verwendet.
 
 
-- [ ] **Authentifizierung umsetzen**
+- [x] **Authentifizierung umsetzen**
 
-  Ansichten für Registrierung, Login und Logout erstellen und mit dem vorhandenen API-Service verbinden. Das JWT sicher für die Browser-Session halten; Rolle und angemeldeten Benutzer danach in den Signal-Store übernehmen.
+  Ansichten für Registrierung, Login und Logout sind mit dem vorhandenen API-Service verbunden. Das JWT wird für die Browser-Session gehalten; Rolle und angemeldeter Benutzer werden danach in den Signal-Store übernommen.
+
+
+- [ ] **CORS im Backend für das Frontend freigeben**
+
+  Das Quarkus-Backend muss Browser-Anfragen des Angular-Frontends erlauben, beispielsweise von `http://localhost:4200`. Ohne diese Konfiguration blockiert der Browser die Authentifizierungsanfragen trotz vorhandener Frontend-Anbindung.
+
+
+- [ ] **Development-Login ohne Backend ergänzen**
+
+  Nur im Development-Build eine lokale Demo-Session anbieten, damit die UI ohne laufendes Backend getestet werden kann. Im Production-Build darf diese Option nicht enthalten sein.
+
+
+- [ ] **Backend lokal starten und Frontend-Verbindung prüfen**
+
+  Backend gemäß dessen README mit JWT-Schlüsseln und GitLab-Konfiguration starten, CORS prüfen und die Authentifizierungsanfragen des Frontends gegen die laufende Instanz testen.
+
+
+- [ ] **Vertikalen Backend-Ablauf integrieren und testen**
+
+  Den vollständigen Ablauf schrittweise gegen echte Daten testen: Login, Sitzung erstellen oder beitreten, Issue freigeben, schätzen, Fortschritt anzeigen und Runde aufdecken. Die weiter unten aufgeführten UI-Aufgaben bleiben dabei die konkreten Umsetzungsschritte.
 
 
 - [ ] **Sitzung erstellen und beitreten ermöglichen**

@@ -30,6 +30,10 @@ export class PokerSessionStore {
   readonly allEstimated: Signal<boolean> = computed(() =>
     this.participants().filter((person) => person.role === 'Entwickler').every((person) => person.estimated)
   );
+
+  setAuthenticatedUser(name: string, role: UserRole): void {
+    this.currentUser.set({ name, role });
+  }
   releaseIssue(issue: Issue): void {
     this.releasedIssue.set(issue);
   }

@@ -1,0 +1,18 @@
+<main class="authentication">
+  <section class="card">
+    <div class="brand"><span class="mark">P</span><span>Planning Poker</span></div>
+    <h1>{{ mode === 'login' ? 'Welcome back' : 'Create your account' }}</h1>
+    <p class="intro">{{ mode === 'login' ? 'Sign in to join or moderate a planning session.' : 'Create an account to take part in Planning Poker.' }}</p>
+    <div class="tabs"><button type="button" [class.active]="mode === 'login'" (click)="changeMode('login')">Sign in</button><button type="button" [class.active]="mode === 'register'" (click)="changeMode('register')">Register</button></div>
+    <form [formGroup]="form" (ngSubmit)="submit()">
+      <label>Username<input type="text" formControlName="username" autocomplete="username"></label>
+      <label>Password<input type="password" formControlName="password" autocomplete="current-password"><small>Password must contain at least 12 characters.</small></label>
+      @if (mode === 'register') {
+        <label>Role<select formControlName="role"><option value="DEVELOPER">Developer</option><option value="SCRUM_MASTER">Scrum Master</option></select></label>
+      }
+      @if (error) { <p class="error">{{ error }}</p> }
+      @if (message) { <p class="message">{{ message }}</p> }
+      <button class="submit" type="submit" [disabled]="loading">{{ loading ? 'Please wait…' : mode === 'login' ? 'Sign in' : 'Create account' }}</button>
+    </form>
+  </section>
+</main>

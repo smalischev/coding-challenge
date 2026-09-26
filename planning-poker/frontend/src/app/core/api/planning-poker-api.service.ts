@@ -16,6 +16,10 @@ export class PlanningPokerApiService {
 
   constructor(private readonly http: HttpClient) {}
 
+  setAccessToken(token: string | null): void {
+    this.accessToken.set(token);
+  }
+
   register(credentials: Credentials): Observable<void> {
     return this.http.post<void>(`${this.baseUrl}/auth/register`, credentials);
   }

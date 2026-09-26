@@ -1,4 +1,7 @@
-<app-header [sessionId]="store.sessionId()" [currentUser]="store.currentUser().name" [currentRole]="store.currentUser().role"></app-header>
+@if (!auth.user()) {
+  <app-authentication></app-authentication>
+} @else {
+<app-header [sessionId]="store.sessionId()" [currentUser]="store.currentUser().name" [currentRole]="store.currentUser().role" (logout)="logout()"></app-header>
 <main>
   @if (store.currentUser().role === 'Scrum Master') {
     <app-issue-controls [released]="store.releasedIssue() !== null" (issueReleased)="store.releaseIssue($event)"></app-issue-controls>
@@ -25,3 +28,4 @@
     </div>
   </div>
 </main>
+}

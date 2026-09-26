@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
 
 @Component({
   selector: 'app-header',
@@ -10,4 +10,5 @@ export class HeaderComponent {
   @Input({ required: true }) sessionId = '';
   @Input({ required: true }) currentUser = '';
   @Input({ required: true }) currentRole = '';
+  @Output() logout = new EventEmitter<void>();
 }
