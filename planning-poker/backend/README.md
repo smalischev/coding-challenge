@@ -71,9 +71,15 @@ in der GitLab-Historie des Issues nachvollziehbar festgehalten.
 
 ## Einrichtung und Start mit Docker
 
-Voraussetzung ist eine aktuelle Docker-Installation mit Docker Compose.
+Voraussetzungen:
 
-Zuerst wird die Vorlage für die lokalen GitLab-Zugangsdaten kopiert:
+- aktuelle Docker-Installation mit Docker Compose
+- OpenSSL zum Erzeugen eines lokalen JWT-Schlüsselpaares
+- ein GitLab Personal Access Token mit Berechtigung, Issues zu lesen und Labels zu ändern
+
+### 1. Lokale Konfiguration anlegen
+
+Zuerst wird die Vorlage für die lokalen Zugangsdaten kopiert:
 
 ```bash
 cp .env.example .env
@@ -84,17 +90,53 @@ Danach sind in `.env` die folgenden Werte zu setzen:
 ```properties
 GITLAB_URL=https://gitlab.com
 GITLAB_TOKEN=<persönlicher-gitlab-access-token>
+JWT_PRIVATE_KEY_FILE=./secrets/jwt-private-key.pem
+JWT_PUBLIC_KEY_FILE=./secrets/jwt-public-key.pem
 ```
 
 Bei einer selbst gehosteten GitLab-Instanz enthält `GITLAB_URL` nur die
 Basis-URL der Instanz, beispielsweise `https://gitlab.example.com`. Der
 REST-Client ergänzt den API-Pfad selbst.
 
-Die Anwendung wird anschließend einschließlich Image-Build gestartet:
+### 2. JWT-Schlüssel erzeugen
+
+Das Backend signiert Login-Tokens mit dem privaten RSA-Schlüssel und prüft
+eingehende Tokens mit dem öffentlichen Schlüssel. Beide Schlüssel werden nur
+lokal gespeichert und über Docker in den Container eingebunden:
+
+```bash
+mkdir -p secrets
+openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:2048 -out secrets/jwt-private-key.pem
+openssl rsa -pubout -in secrets/jwt-private-key.pem -out secrets/jwt-public-key.pem
+chmod 600 secrets/jwt-private-key.pem
+```
+
+`secrets/` und `.env` sind in `.gitignore` eingetragen und dürfen nicht in Git
+eingecheckt werden.
+
+### 3. Anwendung starten
+
+Die Anwendung wird einschließlich Image-Build gestartet:
 
 ```bash
 docker compose up --build
 ```
 
-Das Backend ist danach unter `http://localhost:8080` erreichbar. Die Datei
-`.env` enthält Zugangsdaten und wird nicht in Git eingecheckt.
+Das Backend ist danach unter `http://localhost:8080` erreichbar. Zum Beenden
+der Anwendung genügt `docker compose down`.
+
+### Schnittstellendokumentation
+
+Swagger UI ist im laufenden Backend unter
+`http://localhost:8080/q/swagger-ui` erreichbar. Die maschinenlesbare
+OpenAPI-Beschreibung liefert `http://localhost:8080/q/openapi`.
+
+Bei einem Maven-Build wird zusätzlich
+`target/openapi/planning-poker-api.yaml` erzeugt. Sie dokumentiert die
+REST-Endpunkte, JWT-Bearer-Authentifizierung und das SSE-Ereignis
+`all-developers-estimated`.
+
+### Hinweis zur Speicherung
+
+Benutzer, Sessions und Schätzrunden werden derzeit ausschließlich im Speicher
+gehalten. Ein Neustart des Containers löscht diese Daten.
