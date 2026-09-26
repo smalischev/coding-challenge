@@ -1,0 +1,8 @@
+<section class="role-switcher">
+  <span>Nur Entwicklung</span>
+  <p>Ansicht testen als</p>
+  <div>
+    <button type="button" [class.active]="role === 'Scrum Master'" (click)="roleChanged.emit('Scrum Master')">Scrum Master</button>
+    <button type="button" [class.active]="role === 'Entwickler'" (click)="roleChanged.emit('Entwickler')">Entwickler</button>
+  </div>
+</section>

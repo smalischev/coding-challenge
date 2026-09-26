@@ -1,9 +1,9 @@
 import { Injectable, Signal, WritableSignal, computed, signal } from '@angular/core';
-import { CardValue, Issue, Participant } from '../models';
+import { CardValue, Issue, Participant, UserRole } from '../models';
 
 export interface CurrentUser {
   name: string;
-  role: 'Scrum Master' | 'Entwickler';
+  role: UserRole;
 }
 
 type SessionId = string;
@@ -26,7 +26,18 @@ export class PokerSessionStore {
     { name: 'Lea2', role: 'Entwickler', estimated: true }
   ]);
 
-  readonly allEstimated: Signal<boolean> = computed(() => this.participants().every((person) => person.estimated));
+  readonly allEstimated: Signal<boolean> = computed(() =>
+    this.participants().filter((person) => person.role === 'Entwickler').every((person) => person.estimated)
+  );
+
+  setTestRole(role: UserRole): void {
+    this.currentUser.update((user) => ({ ...user, role }));
+    this.participants.update((participants) =>
+      participants.map((person) => person.name === this.currentUser().name ? { ...person, role, estimated: false } : person)
+    );
+    this.selectedCard.set(null);
+    this.revealed.set(false);
+  }
 
   selectCard(card: CardValue): void {
     this.selectedCard.set(card);
