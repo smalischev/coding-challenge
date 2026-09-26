@@ -69,6 +69,10 @@ Durch den gemeinsamen Scope `planning-poker` kann ein Issue nur einen
 aktuellen Planning-Poker-Wert besitzen. Änderungen an Labels werden außerdem
 in der GitLab-Historie des Issues nachvollziehbar festgehalten.
 
+---
+
+# Einrichtung und Betrieb
+
 ## Einrichtung und Start mit Docker
 
 Voraussetzungen:
@@ -134,9 +138,18 @@ OpenAPI-Beschreibung liefert `http://localhost:8080/q/openapi`.
 Bei einem Maven-Build wird zusätzlich
 `target/openapi/planning-poker-api.yaml` erzeugt. Sie dokumentiert die
 REST-Endpunkte, JWT-Bearer-Authentifizierung und das SSE-Ereignis
-`all-developers-estimated`.
+`all-developers-estimated`. Dadurch steht die Schnittstellenbeschreibung
+nicht erst nach dem Start der Anwendung zur Verfügung. Eine CI/CD-Pipeline
+kann sie als Build-Artefakt für Kompatibilitäts- beziehungsweise Contract-Checks
+gegen das Backend verwenden. Außerdem lässt sie sich unabhängig von einer
+laufenden Instanz bequem an Frontend-Entwickler weitergeben.
 
 ### Hinweis zur Speicherung
 
 Benutzer, Sessions und Schätzrunden werden derzeit ausschließlich im Speicher
 gehalten. Ein Neustart des Containers löscht diese Daten.
+
+## Offene Aufgaben
+
+Der aktuelle Umsetzungsstand und noch offene Punkte stehen in
+[open-tasks.md](open-tasks.md).
