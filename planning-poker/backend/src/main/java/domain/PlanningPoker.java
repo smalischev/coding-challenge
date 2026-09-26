@@ -162,6 +162,10 @@ public class PlanningPoker {
         return gitlabProjektID;
     }
 
+    public boolean isSessionOwner(ScrumMaster scrumMaster) {
+        return owner.equals(scrumMaster);
+    }
+
     public EstimationProgress getEstimationProgress() {
         if (currentRound == null) {
             throw new IllegalStateException("no active estimation round");

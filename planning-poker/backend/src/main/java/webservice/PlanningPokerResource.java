@@ -16,8 +16,12 @@ import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.ForbiddenException;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.sse.Sse;
+import jakarta.ws.rs.sse.SseEventSink;
 
 import java.util.List;
 import java.util.Map;
@@ -32,6 +36,8 @@ public class PlanningPokerResource {
     PlanningPokerBusiness planningPokerBusiness;
     @Inject
     AuthenticatedMemberFactory authenticatedMemberFactory;
+    @Inject
+    EstimationCompletionNotifier estimationCompletionNotifier;
 
     @POST
     @RolesAllowed("SCRUM_MASTER")
@@ -101,6 +107,20 @@ public class PlanningPokerResource {
     @RolesAllowed({"SCRUM_MASTER", "DEVELOPER"})
     public AllDevelopersEstimatedResponse allDevelopersEstimated(@PathParam("planningPokerId") UUID planningPokerId) {
         return new AllDevelopersEstimatedResponse(planningPokerBusiness.allDevelopersEstimated(planningPokerId));
+    }
+
+    @GET
+    @Path("/{planningPokerId}/active-round/events")
+    @Produces(MediaType.SERVER_SENT_EVENTS)
+    @RolesAllowed("SCRUM_MASTER")
+    public void subscribeToEstimationCompletion(@PathParam("planningPokerId") UUID planningPokerId,
+                                                @Context Sse sse,
+                                                @Context SseEventSink eventSink) {
+        ScrumMaster scrumMaster = (ScrumMaster) authenticatedMemberFactory.create();
+        if (!planningPokerBusiness.isSessionOwner(planningPokerId, scrumMaster)) {
+            throw new ForbiddenException();
+        }
+        estimationCompletionNotifier.subscribe(planningPokerId, sse, eventSink);
     }
 
     @POST

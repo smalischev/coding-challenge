@@ -25,9 +25,11 @@ class PlanningPokerResourceTest {
     private String scrumMasterToken;
     private String alexToken;
     private String kimToken;
+    private String otherScrumMasterToken;
     private String scrumMasterName;
     private String alexName;
     private String kimName;
+    private String otherScrumMasterName;
 
     @BeforeEach
     void authenticate() {
@@ -36,9 +38,11 @@ class PlanningPokerResourceTest {
         scrumMasterName = "Mara-" + testRun;
         alexName = "Alex-" + testRun;
         kimName = "Kim-" + testRun;
+        otherScrumMasterName = "Nina-" + testRun;
         scrumMasterToken = registerAndLogin(scrumMasterName, "SCRUM_MASTER");
         alexToken = registerAndLogin(alexName, "DEVELOPER");
         kimToken = registerAndLogin(kimName, "DEVELOPER");
+        otherScrumMasterToken = registerAndLogin(otherScrumMasterName, "SCRUM_MASTER");
     }
 
     // Prüft den vollständigen REST-Ablauf einer Planning-Poker-Session.
@@ -103,6 +107,21 @@ class PlanningPokerResourceTest {
                 .contentType(JSON)
                 .body(Map.of("gitlabProjectId", 123, "gitlabIssueIid", 42))
                 .when().post("/planning-pokers")
+                .then().statusCode(403);
+    }
+
+    // Prüft, dass ein Scrum Master den Ereignis-Stream einer fremden Session nicht abonnieren darf.
+    @Test
+    void nonOwnerCannotSubscribeToEstimationEvents() {
+        String planningPokerId = as(scrumMasterToken)
+                .contentType(JSON)
+                .body(Map.of("gitlabProjectId", 123, "gitlabIssueIid", 42))
+                .when().post("/planning-pokers")
+                .then().statusCode(201)
+                .extract().path("planningPokerId");
+
+        as(otherScrumMasterToken)
+                .when().get("/planning-pokers/{id}/active-round/events", planningPokerId)
                 .then().statusCode(403);
     }
 

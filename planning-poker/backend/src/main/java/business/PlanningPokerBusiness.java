@@ -3,11 +3,14 @@ package business;
 import domain.*;
 import repository.InMemoryPlanningPokerRepository;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.event.Event;
 import jakarta.inject.Inject;
 
 import java.util.Map;
 import java.util.OptionalInt;
+import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 @ApplicationScoped
 public class PlanningPokerBusiness {
@@ -15,19 +18,27 @@ public class PlanningPokerBusiness {
 
     private final GitLabIssueGateway gitLabIssueGateway;
     private final PlanningPokerRepository planningPokerRepository;
+    private final Event<AllDevelopersEstimated> allDevelopersEstimatedEvents;
+    private final Set<UUID> notifiedCompletedRounds = ConcurrentHashMap.newKeySet();
 
     @Inject
     public PlanningPokerBusiness(
             GitLabIssueGateway gitLabIssueGateway,
-            PlanningPokerRepository planningPokerRepository
+            PlanningPokerRepository planningPokerRepository,
+            Event<AllDevelopersEstimated> allDevelopersEstimatedEvents
     ) {
         this.gitLabIssueGateway = gitLabIssueGateway;
         this.planningPokerRepository = planningPokerRepository;
+        this.allDevelopersEstimatedEvents = allDevelopersEstimatedEvents;
+    }
+
+    public PlanningPokerBusiness(GitLabIssueGateway gitLabIssueGateway, PlanningPokerRepository planningPokerRepository) {
+        this(gitLabIssueGateway, planningPokerRepository, null);
     }
 
     // Kompatibilitätskonstruktor für reine Java-Tests ohne CDI.
     public PlanningPokerBusiness(GitLabIssueGateway gitLabIssueGateway) {
-        this(gitLabIssueGateway, new InMemoryPlanningPokerRepository());
+        this(gitLabIssueGateway, new InMemoryPlanningPokerRepository(), null);
     }
 
     public UUID createPlanningPoker(ScrumMaster scrumMaster, long gitlabProjectID, Issue issue) {
@@ -46,6 +57,7 @@ public class PlanningPokerBusiness {
         PlanningPoker planningPoker = getPlanningPoker(planningPokerId);
         planningPoker.selectIssue(member, issue);
         save(planningPoker);
+        notifiedCompletedRounds.remove(planningPokerId);
     }
 
     public void releaseActiveIssue(UUID planningPokerId, Member member) {
@@ -58,6 +70,10 @@ public class PlanningPokerBusiness {
         PlanningPoker planningPoker = getPlanningPoker(planningPokerId);
         planningPoker.estimate(member, developer, cardValue);
         save(planningPoker);
+        if (planningPoker.allDevelopersEstimated() && notifiedCompletedRounds.add(planningPokerId)
+                && allDevelopersEstimatedEvents != null) {
+            allDevelopersEstimatedEvents.fire(new AllDevelopersEstimated(planningPokerId));
+        }
     }
 
     public void reveal(UUID planningPokerId, Member member, ScrumMaster scrumMaster) {
@@ -70,6 +86,7 @@ public class PlanningPokerBusiness {
         PlanningPoker planningPoker = getPlanningPoker(planningPokerId);
         planningPoker.startNewRound(member);
         save(planningPoker);
+        notifiedCompletedRounds.remove(planningPokerId);
     }
 
     public void takeToGitlab(UUID planningPokerId, ScrumMaster scrumMaster, CardValue value) {
@@ -86,6 +103,10 @@ public class PlanningPokerBusiness {
 
     public boolean allDevelopersEstimated(UUID planningPokerId) {
         return getPlanningPoker(planningPokerId).allDevelopersEstimated();
+    }
+
+    public boolean isSessionOwner(UUID planningPokerId, ScrumMaster scrumMaster) {
+        return getPlanningPoker(planningPokerId).isSessionOwner(scrumMaster);
     }
 
     public Map<Developer, CardValue> getEstimateValues(UUID planningPokerId) {
