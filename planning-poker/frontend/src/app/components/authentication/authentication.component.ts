@@ -4,6 +4,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { finalize, Observable } from 'rxjs';
 import { AuthSessionService } from '../../core/auth/auth-session.service';
 import { ApiRole } from '../../core/api/planning-poker-api.models';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-authentication',
@@ -14,6 +15,7 @@ import { ApiRole } from '../../core/api/planning-poker-api.models';
 })
 export class AuthenticationComponent {
   readonly auth = inject(AuthSessionService);
+  readonly environment = environment;
   mode: 'login' | 'register' = 'login';
   loading = false;
   message = '';
@@ -28,6 +30,10 @@ export class AuthenticationComponent {
     this.mode = mode;
     this.message = '';
     this.error = '';
+  }
+
+  continueWithDemoSession(): void {
+    this.auth.startDemoSession();
   }
 
   submit(): void {

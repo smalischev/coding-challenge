@@ -17,9 +17,9 @@
   Das Quarkus-Backend muss Browser-Anfragen des Angular-Frontends erlauben, beispielsweise von `http://localhost:4200`. Ohne diese Konfiguration blockiert der Browser die Authentifizierungsanfragen trotz vorhandener Frontend-Anbindung.
 
 
-- [ ] **Development-Login ohne Backend ergänzen**
+- [x] **Development-Login ohne Backend ergänzen**
 
-  Nur im Development-Build eine lokale Demo-Session anbieten, damit die UI ohne laufendes Backend getestet werden kann. Im Production-Build darf diese Option nicht enthalten sein.
+  Im Development-Build steht eine nicht persistierte lokale Demo-Session für Anna als Scrum Master bereit. Im Production-Build ist diese Option ausgeblendet und sendet keine Backend-Anfrage.
 
 
 - [ ] **Backend lokal starten und Frontend-Verbindung prüfen**

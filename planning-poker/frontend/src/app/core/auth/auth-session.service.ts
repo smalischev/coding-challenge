@@ -37,6 +37,11 @@ export class AuthSessionService {
     );
   }
 
+  startDemoSession(): void {
+    this.api.setAccessToken(null);
+    this.user.set({ username: 'Anna', role: 'SCRUM_MASTER' });
+  }
+
   logout(): Observable<void> {
     if (!this.user()) {
       return of(void 0);
