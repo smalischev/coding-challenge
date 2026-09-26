@@ -11,6 +11,23 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.UUID;
 
 class GitLabIssueGatewayTest {
+    // Prüft, dass beim Erstellen einer Session die Details des initialen Issues über GitLab geladen werden.
+    @Test
+    void initialIssueIsLoadedFromGitLab() {
+        RecordingGitLabIssueGateway gitLabIssueGateway = new RecordingGitLabIssueGateway();
+        gitLabIssueGateway.loadedIssue = new Issue(42, "Login verbessern", "Die Anmeldung soll verständlicher werden.");
+        PlanningPokerBusiness business = new PlanningPokerBusiness(gitLabIssueGateway);
+
+        Issue issue = business.loadIssue(123L, 42L);
+        UUID planningPokerId = business.createPlanningPoker(new ScrumMaster("Mara"), 123L, issue);
+
+        Issue activeIssue = business.getActiveIssue(planningPokerId);
+        assertEquals(123L, gitLabIssueGateway.requestedProjectId);
+        assertEquals(42L, gitLabIssueGateway.requestedIssueIid);
+        assertEquals("Login verbessern", activeIssue.getTitle());
+        assertEquals("Die Anmeldung soll verständlicher werden.", activeIssue.getDescription());
+    }
+
     // Prüft, dass das finale Ergebnis als scoped GitLab-Label am Issue gespeichert wird.
     @Test
     void finalResultIsStoredAsGitLabLabel() {
@@ -34,6 +51,16 @@ class GitLabIssueGatewayTest {
         private long projectId;
         private long issueIid;
         private String label;
+        private long requestedProjectId;
+        private long requestedIssueIid;
+        private Issue loadedIssue;
+
+        @Override
+        public Issue getIssue(long projectId, long issueIid) {
+            this.requestedProjectId = projectId;
+            this.requestedIssueIid = issueIid;
+            return loadedIssue;
+        }
 
         @Override
         public void addScopedLabel(long projectId, long issueIid, String label) {

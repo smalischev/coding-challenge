@@ -109,6 +109,19 @@ public class PlanningPokerBusiness {
         return getPlanningPoker(planningPokerId).isSessionOwner(scrumMaster);
     }
 
+    public Issue getActiveIssue(UUID planningPokerId) {
+        return getPlanningPoker(planningPokerId).getActiveIssue();
+    }
+
+    public Issue loadIssue(long gitlabProjectId, long gitlabIssueIid) {
+        return gitLabIssueGateway.getIssue(gitlabProjectId, gitlabIssueIid);
+    }
+
+    public Issue loadIssue(UUID planningPokerId, long gitlabIssueIid) {
+        PlanningPoker planningPoker = getPlanningPoker(planningPokerId);
+        return loadIssue(planningPoker.getGitlabProjectId(), gitlabIssueIid);
+    }
+
     public Map<Developer, CardValue> getEstimateValues(UUID planningPokerId) {
         return getPlanningPoker(planningPokerId).getEstimateValues();
     }

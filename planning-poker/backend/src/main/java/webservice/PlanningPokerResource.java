@@ -60,10 +60,11 @@ public class PlanningPokerResource {
     @APIResponse(responseCode = "201", description = "Session wurde erstellt")
     @APIResponse(responseCode = "403", description = "Der angemeldete Benutzer ist kein Scrum Master")
     public Response createSession(CreateSessionRequest request) {
+        Issue issue = planningPokerBusiness.loadIssue(request.gitlabProjectId(), request.gitlabIssueIid());
         UUID planningPokerId = planningPokerBusiness.createPlanningPoker(
                 (ScrumMaster) authenticatedMemberFactory.create(),
                 request.gitlabProjectId(),
-                new Issue(request.gitlabIssueIid())
+                issue
         );
 
         return Response.status(Response.Status.CREATED)
@@ -90,12 +91,23 @@ public class PlanningPokerResource {
     @APIResponse(responseCode = "204", description = "Aktives Issue wurde gewählt")
     @APIResponse(responseCode = "403", description = "Der angemeldete Benutzer ist nicht der Scrum-Master-Owner der Session")
     public Response selectIssue(@PathParam("planningPokerId") UUID planningPokerId, SelectIssueRequest request) {
+        Issue issue = planningPokerBusiness.loadIssue(planningPokerId, request.gitlabIssueIid());
         planningPokerBusiness.selectIssue(
                 planningPokerId,
                 authenticatedMemberFactory.create(),
-                new Issue(request.gitlabIssueIid())
+                issue
         );
         return Response.noContent().build();
+    }
+
+    @GET
+    @Path("/{planningPokerId}/active-issue")
+    @RolesAllowed({"SCRUM_MASTER", "DEVELOPER"})
+    @Operation(summary = "Aktives Issue abrufen", description = "Liefert IID, Titel und Beschreibung des aktuell ausgewählten GitLab-Issues.")
+    @APIResponse(responseCode = "200", description = "Aktives Issue")
+    public ActiveIssueResponse getActiveIssue(@PathParam("planningPokerId") UUID planningPokerId) {
+        Issue issue = planningPokerBusiness.getActiveIssue(planningPokerId);
+        return new ActiveIssueResponse(issue.getGitlabIssueIid(), issue.getTitle(), issue.getDescription());
     }
 
     @POST
@@ -250,6 +262,9 @@ public class PlanningPokerResource {
     }
 
     public record SelectIssueRequest(String scrumMasterName, long gitlabIssueIid) {
+    }
+
+    public record ActiveIssueResponse(long gitlabIssueIid, String title, String description) {
     }
 
     public record ScrumMasterRequest(String scrumMasterName) {

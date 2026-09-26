@@ -2,6 +2,8 @@ package domain;
 
 public class Issue {
     private final long gitlabIssueIid;
+    private final String title;
+    private final String description;
     private boolean approved;
     private CardValue value;
 
@@ -10,11 +12,25 @@ public class Issue {
     }
 
     public Issue(long gitlabIssueIid) {
+        this(gitlabIssueIid, null, null);
+    }
+
+    public Issue(long gitlabIssueIid, String title, String description) {
         this.gitlabIssueIid = gitlabIssueIid;
+        this.title = title;
+        this.description = description;
     }
 
     public long getGitlabIssueIid() {
         return gitlabIssueIid;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public String getDescription() {
+        return description;
     }
 
     public CardValue getValue(){

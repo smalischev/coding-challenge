@@ -1,8 +1,14 @@
 # Offene Aufgaben
 
-- [ ] **GitLab-Issues eines Projekts abrufen** _(README-Pflicht)_
+- [x] **Details eines ausgewählten GitLab-Issues abrufen** _(README-Pflicht)_
 
-  Der GitLab-Client kann bisher nur ein Label an einem Issue setzen. Es fehlen der GitLab-API-Aufruf zum Abrufen der Issues eines Projekts und ein eigener REST-Endpunkt dafür.
+  Beim Erstellen oder Wechseln eines Issues lädt das Backend IID, Titel und Beschreibung über die GitLab-API. Das aktive Issue ist anschließend über einen REST-Endpunkt für die Teilnehmer verfügbar.
+
+<br>
+
+- [ ] **Liste offener GitLab-Issues eines Projekts anbieten**
+
+  Eine Auswahlliste offener Issues wäre eine Komfortfunktion für das Frontend. Die README verlangt sie nicht ausdrücklich, weil der Scrum Master die Issue-IID beim Erstellen der Session angeben kann.
 
 <br>
 

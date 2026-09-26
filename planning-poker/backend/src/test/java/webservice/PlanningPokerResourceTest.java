@@ -1,6 +1,7 @@
 package webservice;
 
 import business.GitLabIssueGateway;
+import domain.Issue;
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
 import io.restassured.RestAssured;
@@ -26,7 +27,9 @@ import static io.restassured.http.ContentType.JSON;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @QuarkusTest
 class PlanningPokerResourceTest {
@@ -49,6 +52,10 @@ class PlanningPokerResourceTest {
         alexName = "Alex-" + testRun;
         kimName = "Kim-" + testRun;
         otherScrumMasterName = "Nina-" + testRun;
+        when(gitLabIssueGateway.getIssue(anyLong(), anyLong())).thenAnswer(invocation -> {
+            long issueIid = invocation.getArgument(1);
+            return new Issue(issueIid, "Issue " + issueIid, "Issue description " + issueIid);
+        });
         scrumMasterToken = registerAndLogin(scrumMasterName, "SCRUM_MASTER");
         alexToken = registerAndLogin(alexName, "DEVELOPER");
         kimToken = registerAndLogin(kimName, "DEVELOPER");
@@ -64,6 +71,12 @@ class PlanningPokerResourceTest {
                 .when().post("/planning-pokers")
                 .then().statusCode(201)
                 .extract().path("planningPokerId");
+
+        as(scrumMasterToken).when().get("/planning-pokers/{id}/active-issue", planningPokerId)
+                .then().statusCode(200)
+                .body("gitlabIssueIid", equalTo(42))
+                .body("title", equalTo("Issue 42"))
+                .body("description", equalTo("Issue description 42"));
 
         as(scrumMasterToken).contentType(JSON).body(Map.of("scrumMasterName", scrumMasterName, "gitlabIssueIid", 42))
                 .when().put("/planning-pokers/{id}/active-issue", planningPokerId)

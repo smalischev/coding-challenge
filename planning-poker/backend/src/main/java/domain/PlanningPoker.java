@@ -162,6 +162,13 @@ public class PlanningPoker {
         return gitlabProjektID;
     }
 
+    public Issue getActiveIssue() {
+        if (activeIssue == null) {
+            throw new IllegalStateException("no active issue selected");
+        }
+        return activeIssue;
+    }
+
     public boolean isSessionOwner(ScrumMaster scrumMaster) {
         return owner.equals(scrumMaster);
     }
