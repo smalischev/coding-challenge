@@ -47,9 +47,9 @@
   Der Status „hat geschätzt“ beziehungsweise „ausstehend“ sowie der Hinweis, dass alle Entwickler geschätzt haben, aktualisieren sich aus dem Signal-Store. Nach Beitritt, Freigabe und abgegebener Schätzung werden die Fortschrittsdaten vom Backend geladen; Echtzeit-Updates bleiben eine eigene Aufgabe.
 
 
-- [ ] **Aufgedeckte Ergebnisse dynamisch darstellen**
+- [x] **Aufgedeckte Ergebnisse dynamisch darstellen**
 
-  Einzelwerte, Gruppierung, Durchschnitt und häufigsten Wert aus dem Store beziehungsweise Backend darstellen. Die fest verdrahteten Werte entfernen; Scrum Master dürfen nicht als Schätzer erscheinen.
+  Einzelwerte, Gruppierung, Durchschnitt und häufigsten Wert werden nach dem Aufdecken über die Ergebnis-Endpunkte geladen und dynamisch dargestellt. Die Balkendiagrammwerte leiten sich aus der Backend-Verteilung ab; Scrum Master erscheinen nicht als Schätzer.
 
 
 - [ ] **Finales Ergebnis nach GitLab übernehmen**

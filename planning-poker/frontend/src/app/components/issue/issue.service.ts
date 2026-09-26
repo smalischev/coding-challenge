@@ -8,14 +8,14 @@ export class IssueService {
   constructor(private readonly api: PlanningPokerApiService) {}
 
   select(sessionId: PlanningPokerId, request: SelectIssueRequest): Observable<void> {
-    return this.api.selectActiveIssue(sessionId, request);
+    return this.api.put<void>(`/planning-pokers/${encodeURIComponent(sessionId)}/active-issue`, request);
   }
 
   getActive(sessionId: PlanningPokerId): Observable<ActiveIssueResponse> {
-    return this.api.getActiveIssue(sessionId);
+    return this.api.get<ActiveIssueResponse>(`/planning-pokers/${encodeURIComponent(sessionId)}/active-issue`);
   }
 
   release(sessionId: PlanningPokerId, request: ScrumMasterRequest): Observable<void> {
-    return this.api.releaseActiveIssue(sessionId, request);
+    return this.api.post<void>(`/planning-pokers/${encodeURIComponent(sessionId)}/active-issue/release`, request);
   }
 }

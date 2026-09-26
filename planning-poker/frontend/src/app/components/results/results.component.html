@@ -1,5 +1,6 @@
 <section class="results">
   <div class="heading"><h2>Aufgedeckte Karten</h2><span>Runde 1</span></div>
+  @if (error()) { <p>{{ error() }}</p> }
   <div class="estimates">
     @for (estimate of revealedEstimates(); track estimate.developerName) {
       <div><b>{{ estimate.developerName }}</b><strong>{{ estimate.value }}</strong></div>

@@ -19,10 +19,10 @@ describe('PlanningPokerApiService', () => {
 
   afterEach(() => httpTesting.verify());
 
-  it('sends the registration data to the authentication endpoint', () => {
+  it('sends a POST request to the given path', () => {
     const credentials = { username: 'test-developer', password: 'safe-test-password', role: 'DEVELOPER' as const };
 
-    api.register(credentials).subscribe();
+    api.post<void>('/auth/register', credentials).subscribe();
 
     const request = httpTesting.expectOne(`${environment.apiBaseUrl}/auth/register`);
     expect(request.request.method).toBe('POST');

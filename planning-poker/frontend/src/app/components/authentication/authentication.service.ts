@@ -1,7 +1,8 @@
 import { Injectable, signal } from '@angular/core';
-import { Observable, finalize, map, of } from 'rxjs';
-import { ApiRole, Credentials } from '../../core/api/planning-poker-api.models';
+import { Observable, finalize, map, of, tap } from 'rxjs';
+import { ApiRole, Credentials, TokenResponse } from '../../core/api/planning-poker-api.models';
 import { PlanningPokerApiService } from '../../core/api/planning-poker-api.service';
+import { AuthTokenService } from '../../core/auth/auth-token.service';
 
 export interface AuthenticatedUser {
   username: string;
@@ -18,16 +19,17 @@ export class AuthenticationService {
   private readonly storageKey = 'planning-poker.session';
   readonly user = signal<AuthenticatedUser | null>(this.readStoredSession()?.user ?? null);
 
-  constructor(private readonly api: PlanningPokerApiService) {
-    this.api.setAccessToken(this.readStoredSession()?.accessToken ?? null);
+  constructor(private readonly api: PlanningPokerApiService, private readonly token: AuthTokenService) {
+    this.token.set(this.readStoredSession()?.accessToken ?? null);
   }
 
   register(credentials: Required<Credentials>): Observable<void> {
-    return this.api.register(credentials);
+    return this.api.post<void>('/auth/register', credentials);
   }
 
   login(credentials: Pick<Credentials, 'username' | 'password'>): Observable<AuthenticatedUser> {
-    return this.api.login(credentials).pipe(
+    return this.api.post<TokenResponse>('/auth/login', credentials).pipe(
+      tap((response) => this.token.set(response.accessToken)),
       map((response) => {
         const user: AuthenticatedUser = { username: credentials.username, role: this.roleFromToken(response.accessToken) };
         this.user.set(user);
@@ -38,7 +40,7 @@ export class AuthenticationService {
   }
 
   startDemoSession(): void {
-    this.api.setAccessToken(null);
+    this.token.set(null);
     this.user.set({ username: 'Anna', role: 'SCRUM_MASTER' });
   }
 
@@ -46,7 +48,7 @@ export class AuthenticationService {
     if (!this.user()) {
       return of(void 0);
     }
-    return this.api.logout().pipe(finalize(() => this.clearSession()));
+    return this.api.post<void>('/auth/logout', {}).pipe(finalize(() => this.clearSession()));
   }
 
   private readStoredSession(): StoredSession | null {
@@ -67,7 +69,7 @@ export class AuthenticationService {
   }
 
   private clearSession(): void {
-    this.api.setAccessToken(null);
+    this.token.set(null);
     this.user.set(null);
     sessionStorage.removeItem(this.storageKey);
   }
