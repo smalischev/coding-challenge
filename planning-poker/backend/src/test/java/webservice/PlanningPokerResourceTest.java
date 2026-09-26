@@ -9,13 +9,23 @@ import io.restassured.specification.RequestSpecification;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 import static io.restassured.RestAssured.given;
 import static io.restassured.http.ContentType.JSON;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.equalTo;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.verify;
 
 @QuarkusTest
@@ -123,6 +133,55 @@ class PlanningPokerResourceTest {
         as(otherScrumMasterToken)
                 .when().get("/planning-pokers/{id}/active-round/events", planningPokerId)
                 .then().statusCode(403);
+    }
+
+    // Prüft, dass der Session-Owner nach der letzten Schätzung über den SSE-Stream benachrichtigt wird.
+    @Test
+    void scrumMasterReceivesSseNotificationWhenAllDevelopersEstimated() throws Exception {
+        String planningPokerId = as(scrumMasterToken)
+                .contentType(JSON)
+                .body(Map.of("gitlabProjectId", 123, "gitlabIssueIid", 42))
+                .when().post("/planning-pokers")
+                .then().statusCode(201)
+                .extract().path("planningPokerId");
+        join(planningPokerId, alexName, alexToken);
+        join(planningPokerId, kimName, kimToken);
+        as(scrumMasterToken)
+                .contentType(JSON)
+                .when().post("/planning-pokers/{id}/active-issue/release", planningPokerId)
+                .then().statusCode(204);
+
+        HttpRequest request = HttpRequest.newBuilder(URI.create(
+                        "http://localhost:" + RestAssured.port + "/planning-pokers/" + planningPokerId + "/active-round/events"))
+                .header("Accept", "text/event-stream")
+                .header("Authorization", "Bearer " + scrumMasterToken)
+                .GET()
+                .build();
+        HttpResponse<InputStream> sseResponse = HttpClient.newHttpClient()
+                .sendAsync(request, HttpResponse.BodyHandlers.ofInputStream())
+                .get(5, TimeUnit.SECONDS);
+        assertEquals(200, sseResponse.statusCode());
+
+        estimate(planningPokerId, alexName, "FIVE", alexToken);
+        estimate(planningPokerId, kimName, "EIGHT", kimToken);
+
+        try (InputStream stream = sseResponse.body();
+             BufferedReader reader = new BufferedReader(new InputStreamReader(stream, StandardCharsets.UTF_8))) {
+            String eventName = null;
+            String eventData = null;
+            String line;
+            while ((line = reader.readLine()) != null && eventData == null) {
+                if (line.startsWith("event:")) {
+                    eventName = line.substring("event:".length()).trim();
+                }
+                if (line.startsWith("data:")) {
+                    eventData = line.substring("data:".length()).trim();
+                }
+            }
+
+            assertEquals("all-developers-estimated", eventName);
+            assertEquals("{\"allDevelopersEstimated\":true}", eventData);
+        }
     }
 
     private String registerAndLogin(String username, String role) {

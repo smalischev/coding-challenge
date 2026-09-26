@@ -24,6 +24,6 @@
 
 <br>
 
-- [ ] **SSE-Benachrichtigung als Integrationstest prüfen**
+- [x] **SSE-Benachrichtigung als Integrationstest prüfen**
 
-  Ein Test sollte einen SSE-Stream öffnen, die letzte Schätzung abgeben und den Empfang des Ereignisses `all-developers-estimated` verifizieren.
+  Der REST-Integrationstest öffnet einen SSE-Stream, gibt die letzte Schätzung ab und prüft den Empfang des Ereignisses `all-developers-estimated`.
