@@ -1,1 +1,19 @@
-<section class="panel"><div class="heading"><h2>Teilnehmer</h2><span>{{ estimatedCount }} / {{ participants.length }}</span></div>@for (person of participants; track person.name) {<div class="person" [class.current-user]="person.name === currentUserName"><span class="status" [class.complete]="person.estimated" [class.owner]="person.role === 'Scrum Master'">{{ person.estimated ? '✓' : '○' }}</span><div><strong>{{ person.name }}</strong>@if (person.name === currentUserName) { <span class="you">Du</span> }<small>{{ person.role }}</small></div><span class="state" [class.complete]="person.estimated">{{ person.estimated ? 'hat geschätzt' : 'ausstehend' }}</span></div>}<p class="summary"><strong>{{ estimatedCount }}</strong> von {{ participants.length }} Schätzungen eingegangen</p></section>
+<section class="panel">
+  <div class="heading"><h2>Teilnehmer</h2><span>{{ estimatedCount }} / {{ developers.length }} geschätzt</span></div>
+  @for (person of participants; track person.name) {
+    <button type="button" class="person" [class.current-user]="person.name === currentUserName" [class.selectable]="testUserSelectionEnabled" [disabled]="!testUserSelectionEnabled" (click)="userSelected.emit(person.name)">
+      <span class="status" [class.complete]="person.estimated" [class.owner]="person.role === 'Scrum Master'">{{ person.role === 'Scrum Master' ? '◆' : person.estimated ? '✓' : '○' }}</span>
+      <div><strong>{{ person.name }}</strong>@if (person.name === currentUserName) { <span class="you">Du</span> }<small>{{ person.role }}</small></div>
+      @if (person.role === 'Scrum Master') {
+        <span class="state moderator">moderiert</span>
+      } @else {
+        <span class="state" [class.complete]="person.estimated">{{ person.estimated ? 'hat geschätzt' : 'ausstehend' }}</span>
+      }
+    </button>
+  }
+  @if (allEstimated) {
+    <p class="progress-complete">✓ Alle Entwickler haben geschätzt.</p>
+  } @else {
+    <p class="summary"><strong>{{ estimatedCount }}</strong> von {{ developers.length }} Schätzungen eingegangen</p>
+  }
+</section>

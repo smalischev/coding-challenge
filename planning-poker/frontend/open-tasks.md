@@ -17,14 +17,14 @@
   Ein Formular für GitLab-Projekt-ID und Issue-IID für Scrum Master sowie eine Beitrittsansicht für Entwickler über Session-ID oder Einladungslink ergänzen.
 
 
-- [ ] **Issue-Auswahl und Freigabe durch den Scrum Master umsetzen**
+- [x] **Issue-Auswahl und Freigabe durch den Scrum Master umsetzen**
 
-  Der Scrum Master muss die Issue-IID ändern und das ausgewählte Issue explizit zur Schätzrunde freigeben können. Vor der Freigabe darf das Issue für Entwickler nicht sichtbar sein.
+  Der Scrum Master kann im lokalen UI ein Issue auswählen und es explizit zur Schätzrunde freigeben. Vor der Freigabe sehen Entwickler einen Wartehinweis. Die Auswahl und Freigabe müssen noch mit den vorhandenen Backend-Endpunkten verbunden werden.
 
 
-- [ ] **Abstimmungsfortschritt dynamisch anzeigen**
+- [x] **Abstimmungsfortschritt dynamisch anzeigen**
 
-  Den Status „hat geschätzt“ beziehungsweise „ausstehend“ sowie den Hinweis, dass alle Entwickler geschätzt haben, aus dem Store beziehungsweise Backend aktualisieren.
+  Der Status „hat geschätzt“ beziehungsweise „ausstehend“ sowie der Hinweis, dass alle Entwickler geschätzt haben, aktualisieren sich aus dem lokalen Signal-Store. Die Fortschrittsdaten müssen noch aus dem Backend geladen und in Echtzeit aktualisiert werden.
 
 
 - [ ] **Aufgedeckte Ergebnisse dynamisch darstellen**

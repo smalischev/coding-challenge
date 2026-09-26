@@ -1,0 +1,16 @@
+<section class="controls">
+  <div>
+    <p class="eyebrow">Moderator · Issue-Auswahl</p>
+    <h2>Issue für die nächste Schätzrunde wählen</h2>
+  </div>
+  <label>
+    <span>GitLab-Issue</span>
+    <select [value]="selectedIssue.id" (change)="selectIssue(+$any($event.target).value)">
+      @for (issue of issues; track issue.id) {
+        <option [value]="issue.id">#{{ issue.id }} · {{ issue.title }}</option>
+      }
+    </select>
+  </label>
+  <button type="button" (click)="issueReleased.emit(selectedIssue)">{{ released ? 'Freigabe erneuern' : 'Für Schätzung freigeben' }}</button>
+  <p class="preview">Vorschau: <strong>#{{ selectedIssue.id }} · {{ selectedIssue.title }}</strong></p>
+</section>

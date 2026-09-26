@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { Participant } from '../../models';
 
 @Component({
@@ -10,7 +10,17 @@ import { Participant } from '../../models';
 export class ParticipantsComponent {
   @Input({ required: true }) participants: Participant[] = [];
   @Input({ required: true }) currentUserName = '';
+  @Input() testUserSelectionEnabled = false;
+  @Output() userSelected = new EventEmitter<string>();
+  get developers(): Participant[] {
+    return this.participants.filter((person) => person.role === 'Entwickler');
+  }
+
   get estimatedCount(): number {
-    return this.participants.filter((person) => person.estimated).length;
+    return this.developers.filter((person) => person.estimated).length;
+  }
+
+  get allEstimated(): boolean {
+    return this.developers.every((person) => person.estimated);
   }
 }

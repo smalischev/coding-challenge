@@ -1,1 +1,19 @@
-<section class="results"><div class="heading"><h2>Aufgedeckte Karten</h2><span>Runde 1</span></div><div class="estimates"><div><b>Ben</b><strong>5</strong></div><div><b>Lea</b><strong>8</strong></div><div><b>Anna</b><strong>5</strong></div></div><div class="metrics"><div><span>Verteilung</span><strong>5 · 2 &nbsp; 8 · 1</strong></div><div><span>Durchschnitt</span><strong>6,5</strong></div><div><span>Häufigster Wert</span><strong>5</strong></div></div></section>
+<section class="results">
+  <div class="heading"><h2>Aufgedeckte Karten</h2><span>Runde 1</span></div>
+  <div class="estimates">
+    @for (estimate of revealedEstimates(); track estimate.developerName) {
+      <div><b>{{ estimate.developerName }}</b><strong>{{ estimate.value }}</strong></div>
+    }
+  </div>
+  <section class="distribution">
+    <div class="distribution-heading"><span>Verteilung</span><small>Anzahl der Schätzungen</small></div>
+    @for (group of estimateGroups(); track group.value) {
+      <div class="bar-row">
+        <strong class="value">{{ group.value }}</strong>
+        <div class="track"><div class="bar" [style.width.%]="group.percentage"></div></div>
+        <span class="count">{{ group.count }}</span>
+      </div>
+    }
+  </section>
+  <div class="metrics"><div><span>Durchschnitt</span><strong>{{ average() ?? '–' }}</strong></div><div><span>Häufigster Wert</span><strong>{{ mostFrequentValue() ?? '–' }}</strong></div></div>
+</section>

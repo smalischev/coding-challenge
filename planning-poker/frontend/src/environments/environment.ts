@@ -1,5 +1,5 @@
 export const environment = {
   production: true,
-  enableRoleSwitcher: false,
+  enableTestUserSelection: false,
   apiBaseUrl: 'http://localhost:8080'
 };

@@ -7,17 +7,18 @@ export interface CurrentUser {
 }
 
 type SessionId = string;
+type EstimatesByDeveloper = Partial<Record<string, CardValue>>;
 
 @Injectable({ providedIn: 'root' })
 export class PokerSessionStore {
   readonly sessionId: WritableSignal<SessionId> = signal<SessionId>('ABC123');
   readonly currentUser: WritableSignal<CurrentUser> = signal<CurrentUser>({ name: 'Anna', role: 'Scrum Master' });
-  readonly activeIssue: WritableSignal<Issue> = signal<Issue>({
-    id: 42,
-    title: 'Login überarbeiten',
-    description: 'Die Anmeldung soll verständlicher werden und Fehlermeldungen klar darstellen. Die Umsetzung wird gemeinsam geschätzt.'
+  readonly releasedIssue: WritableSignal<Issue | null> = signal<Issue | null>(null);
+  readonly estimates: WritableSignal<EstimatesByDeveloper> = signal<EstimatesByDeveloper>({
+    Ben: '5',
+    Lea: '8',
+    Lea2: '5'
   });
-  readonly selectedCard: WritableSignal<CardValue | null> = signal<CardValue | null>(null);
   readonly revealed: WritableSignal<boolean> = signal<boolean>(false);
   readonly participants: WritableSignal<Participant[]> = signal<Participant[]>([
     { name: 'Anna', role: 'Scrum Master', estimated: false },
@@ -29,18 +30,20 @@ export class PokerSessionStore {
   readonly allEstimated: Signal<boolean> = computed(() =>
     this.participants().filter((person) => person.role === 'Entwickler').every((person) => person.estimated)
   );
+  releaseIssue(issue: Issue): void {
+    this.releasedIssue.set(issue);
+  }
 
-  setTestRole(role: UserRole): void {
-    this.currentUser.update((user) => ({ ...user, role }));
-    this.participants.update((participants) =>
-      participants.map((person) => person.name === this.currentUser().name ? { ...person, role, estimated: false } : person)
-    );
-    this.selectedCard.set(null);
-    this.revealed.set(false);
+  setTestCurrentUser(participantName: string): void {
+    const participant = this.participants().find((candidate) => candidate.name === participantName);
+    if (!participant) {
+      return;
+    }
+    this.currentUser.set({ name: participant.name, role: participant.role });
   }
 
   selectCard(card: CardValue): void {
-    this.selectedCard.set(card);
+    this.estimates.update((estimates) => ({ ...estimates, [this.currentUser().name]: card }));
     this.participants.update((participants) =>
       participants.map((person) => person.name === this.currentUser().name ? { ...person, estimated: true } : person)
     );
@@ -52,7 +55,8 @@ export class PokerSessionStore {
 
   startNewRound(): void {
     this.revealed.set(false);
-    this.selectedCard.set(null);
+    this.estimates.set({});
     this.participants.update((participants) => participants.map((person) => ({ ...person, estimated: false })));
   }
+
 }
