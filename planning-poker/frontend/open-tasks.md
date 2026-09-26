@@ -9,12 +9,12 @@
 
 - [ ] **Authentifizierung umsetzen**
 
-  Ansichten für Registrierung, Login und Logout erstellen. Die Rolle und der angemeldete Benutzer werden danach aus dem Backend-JWT übernommen.
+  Ansichten für Registrierung, Login und Logout erstellen und mit dem vorhandenen API-Service verbinden. Das JWT sicher für die Browser-Session halten; Rolle und angemeldeten Benutzer danach in den Signal-Store übernehmen.
 
 
 - [ ] **Sitzung erstellen und beitreten ermöglichen**
 
-  Ein Formular für GitLab-Projekt-ID und Issue-IID für Scrum Master sowie eine Beitrittsansicht für Entwickler über Session-ID oder Einladungslink ergänzen.
+  Ein Formular für GitLab-Projekt-ID und Issue-IID für Scrum Master sowie eine Beitrittsansicht für Entwickler über Session-ID oder Einladungslink ergänzen. Die Endpunkte zum Erstellen und Beitreten aufrufen und die Session-ID sowie Teilnehmerdaten in den Signal-Store übernehmen.
 
 
 - [x] **Issue-Auswahl und Freigabe durch den Scrum Master umsetzen**
