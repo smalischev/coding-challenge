@@ -27,24 +27,24 @@
   Backend gemäß dessen README mit JWT-Schlüsseln gestartet. OpenAPI, CORS-Preflight sowie Registrierung und Login wurden erfolgreich gegen die laufende Instanz geprüft.
 
 
-- [ ] **Vertikalen Backend-Ablauf integrieren und testen**
+- [x] **Vertikalen Backend-Ablauf integrieren und testen**
 
-  Den vollständigen Ablauf schrittweise gegen echte Daten testen: Login, Sitzung erstellen oder beitreten, Issue freigeben, schätzen, Fortschritt anzeigen und Runde aufdecken. Die weiter unten aufgeführten UI-Aufgaben bleiben dabei die konkreten Umsetzungsschritte.
+  Die Frontend-Schritte für Login, Sitzung erstellen oder beitreten, aktives Issue laden und freigeben, schätzen, Fortschritt abrufen sowie Runde aufdecken sind angebunden. Der Ablauf wurde gegen das Backend im Quarkus-Profil `dev` vollständig geprüft; dort wird ein lokales GitLab-Mock-Gateway statt des externen GitLab-Gateways injiziert.
 
 
-- [ ] **Sitzung erstellen und beitreten ermöglichen**
+- [x] **Sitzung erstellen und beitreten ermöglichen**
 
-  Ein Formular für GitLab-Projekt-ID und Issue-IID für Scrum Master sowie eine Beitrittsansicht für Entwickler über Session-ID oder Einladungslink ergänzen. Die Endpunkte zum Erstellen und Beitreten aufrufen und die Session-ID sowie Teilnehmerdaten in den Signal-Store übernehmen.
+  Ein Formular für GitLab-Projekt-ID und Issue-IID für Scrum Master sowie eine Beitrittsansicht für Entwickler über Session-ID ergänzen. Die Endpunkte zum Erstellen und Beitreten übernehmen die Session-ID und den aktuellen Teilnehmer in den Signal-Store.
 
 
 - [x] **Issue-Auswahl und Freigabe durch den Scrum Master umsetzen**
 
-  Der Scrum Master kann im lokalen UI ein Issue auswählen und es explizit zur Schätzrunde freigeben. Vor der Freigabe sehen Entwickler einen Wartehinweis. Die Auswahl und Freigabe müssen noch mit den vorhandenen Backend-Endpunkten verbunden werden.
+  Der Scrum Master sieht das beim Anlegen geladene aktive Issue und gibt es explizit zur Schätzrunde frei. Vor der Freigabe sehen Entwickler einen Wartehinweis. Das Laden und Freigeben sind mit den Backend-Endpunkten verbunden.
 
 
 - [x] **Abstimmungsfortschritt dynamisch anzeigen**
 
-  Der Status „hat geschätzt“ beziehungsweise „ausstehend“ sowie der Hinweis, dass alle Entwickler geschätzt haben, aktualisieren sich aus dem lokalen Signal-Store. Die Fortschrittsdaten müssen noch aus dem Backend geladen und in Echtzeit aktualisiert werden.
+  Der Status „hat geschätzt“ beziehungsweise „ausstehend“ sowie der Hinweis, dass alle Entwickler geschätzt haben, aktualisieren sich aus dem Signal-Store. Nach Beitritt, Freigabe und abgegebener Schätzung werden die Fortschrittsdaten vom Backend geladen; Echtzeit-Updates bleiben eine eigene Aufgabe.
 
 
 - [ ] **Aufgedeckte Ergebnisse dynamisch darstellen**
