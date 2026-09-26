@@ -33,6 +33,7 @@ export class PokerBoardComponent {
   readonly error = signal('');
   readonly finalizingResult = signal(false);
   readonly resultMessage = signal('');
+  readonly allEstimatedNotification = signal(false);
   private readonly authentication = inject(AuthenticationService);
   private readonly router = inject(Router);
   private readonly sessions = inject(SessionService);
@@ -44,6 +45,15 @@ export class PokerBoardComponent {
     if (user) {
       this.store.setAuthenticatedUser(user.username, user.role === 'SCRUM_MASTER' ? 'Scrum Master' : 'Entwickler');
     }
+  });
+  private readonly watchEstimationCompletion = effect((onCleanup) => {
+    const sessionId = this.store.sessionId();
+    if (!sessionId || this.store.currentUser().role !== 'Scrum Master' || !this.store.releasedIssue() || this.store.revealed()) return;
+    const subscription = this.estimations.watchAllDevelopersEstimated(sessionId).subscribe({
+      next: () => { this.allEstimatedNotification.set(true); this.refreshProgress(); },
+      error: () => this.error.set('Die Echtzeit-Benachrichtigung konnte nicht verbunden werden.')
+    });
+    onCleanup(() => subscription.unsubscribe());
   });
 
   logout(): void {
@@ -73,7 +83,7 @@ export class PokerBoardComponent {
     const issue = this.store.activeIssue();
     if (!issue) return;
     this.issues.release(this.store.sessionId(), { scrumMasterName: this.store.currentUser().name }).subscribe({
-      next: () => { this.store.releaseIssue(issue); this.refreshProgress(); },
+      next: () => { this.allEstimatedNotification.set(false); this.store.releaseIssue(issue); this.refreshProgress(); },
       error: () => this.error.set('Das Issue konnte nicht freigegeben werden.')
     });
   }
@@ -92,7 +102,7 @@ export class PokerBoardComponent {
     });
   }
 
-  startNewRound(): void { this.estimations.startNewRound(this.store.sessionId(), { scrumMasterName: this.store.currentUser().name }).subscribe({ next: () => this.store.startNewRound(), error: () => this.error.set('Die neue Runde konnte nicht gestartet werden.') }); }
+  startNewRound(): void { this.estimations.startNewRound(this.store.sessionId(), { scrumMasterName: this.store.currentUser().name }).subscribe({ next: () => { this.allEstimatedNotification.set(false); this.store.startNewRound(); }, error: () => this.error.set('Die neue Runde konnte nicht gestartet werden.') }); }
 
   finalizeResult(card: CardValue): void {
     this.finalizingResult.set(true);

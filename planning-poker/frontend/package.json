@@ -5,7 +5,8 @@
   "scripts": {
     "start": "ng serve --host 0.0.0.0",
     "build": "ng build",
-    "test": "ng test --watch=false"
+    "test": "ng test --watch=false",
+    "test:backend-integration": "RUN_BACKEND_INTEGRATION=true ng test --watch=false"
   },
   "dependencies": {
     "@angular/common": "^20.3.0",
@@ -14,6 +15,7 @@
     "@angular/forms": "^20.3.32",
     "@angular/platform-browser": "^20.3.0",
     "@angular/router": "^20.3.32",
+    "@microsoft/fetch-event-source": "^2.0.1",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",
     "zone.js": "~0.15.0"

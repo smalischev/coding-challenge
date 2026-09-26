@@ -64,4 +64,6 @@
 
 - [ ] **Echtzeit-Synchronisation anbinden**
 
-  Teilnehmer, Issue, Fortschritt und aufgedeckte Ergebnisse mit dem Backend synchronisieren. Bis ein vollständiger Echtzeitkanal verfügbar ist, kann der Fortschritt per Polling aktualisiert werden.
+  Für den Scrum Master ist der vorhandene SSE-Endpunkt angebunden: Sobald alle Entwickler geschätzt haben, erscheint eine Echtzeit-Benachrichtigung und der Fortschritt wird neu geladen. Teilnehmer, Issue, Fortschritt und aufgedeckte Ergebnisse sind darüber hinaus noch nicht in Echtzeit synchronisiert.
+
+  - [x] Scrum Master per SSE benachrichtigen, sobald alle Developer geschätzt haben

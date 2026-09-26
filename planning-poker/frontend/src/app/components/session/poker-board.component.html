@@ -13,6 +13,7 @@
       <app-waiting-for-release></app-waiting-for-release>
     }
   }
+  @if (allEstimatedNotification()) { <p class="completion-notice">✓ Alle Entwickler haben geschätzt. Die Runde kann aufgedeckt werden.</p> }
   <div class="workspace">
     <app-participants [participants]="store.participants()" [currentUserName]="store.currentUser().name" [testUserSelectionEnabled]="environment.enableTestUserSelection" (userSelected)="store.setTestCurrentUser($event)"></app-participants>
     <div class="round">
