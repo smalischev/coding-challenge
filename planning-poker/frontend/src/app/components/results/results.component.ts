@@ -1,17 +1,18 @@
-import { Component, effect, inject, signal } from '@angular/core';
+import { Component, computed, effect, inject, signal } from '@angular/core';
 import { forkJoin } from 'rxjs';
 import { BackendCardValue } from '../../core/api/planning-poker-api.models';
 import { CardValue } from '../../models';
 import { PokerSessionStore } from '../../store/poker-session.store';
 import { ResultsService } from './results.service';
 
-interface RevealedEstimate { developerName: string; value: CardValue; }
 interface EstimateGroup { value: CardValue; count: number; percentage: number; }
 
 @Component({ selector: 'app-results', standalone: true, templateUrl: './results.component.html', styleUrl: './results.component.css' })
 export class ResultsComponent {
   readonly store = inject(PokerSessionStore);
-  readonly revealedEstimates = signal<RevealedEstimate[]>([]);
+  readonly revealedEstimates = computed(() => Object.entries(this.store.estimates())
+    .map(([developerName, value]) => ({ developerName, value }))
+  );
   readonly estimateGroups = signal<EstimateGroup[]>([]);
   readonly average = signal<number | null>(null);
   readonly mostFrequentValue = signal<number | null>(null);
@@ -21,9 +22,8 @@ export class ResultsComponent {
   private readonly loadRevealedResults = effect(() => {
     const sessionId = this.store.sessionId();
     if (!sessionId || !this.store.revealed()) return;
-    forkJoin({ estimates: this.results.getEstimates(sessionId), groups: this.results.getGroups(sessionId), average: this.results.getAverage(sessionId), mostFrequentValue: this.results.getMostFrequentValue(sessionId) }).subscribe({
-      next: ({ estimates, groups, average, mostFrequentValue }) => {
-        this.revealedEstimates.set(estimates.map((estimate) => ({ developerName: estimate.developerName, value: this.fromBackendCard(estimate.value) })));
+    forkJoin({ groups: this.results.getGroups(sessionId), average: this.results.getAverage(sessionId), mostFrequentValue: this.results.getMostFrequentValue(sessionId) }).subscribe({
+      next: ({ groups, average, mostFrequentValue }) => {
         this.estimateGroups.set(this.toGroups(groups));
         this.average.set(average.value);
         this.mostFrequentValue.set(mostFrequentValue.value);

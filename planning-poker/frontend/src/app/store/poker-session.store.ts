@@ -18,17 +18,17 @@ export class PokerSessionStore {
     return developers.length > 0 && developers.every((person) => person.estimated);
   });
 
-  setAuthenticatedUser(name: string, role: UserRole): void { this.currentUser.set({ name, role }); this.upsertParticipant({ name, role, estimated: false }); }
+  setAuthenticatedUser(name: string, role: UserRole): void { this.currentUser.set({ name, role }); this.upsertParticipant({ name, role, estimated: false, joinedAt: '' }); }
   setSession(id: string): void { this.sessionId.set(id); }
-  setTestCurrentUser(participantName: string): void { const participant = this.participants().find((candidate) => candidate.name === participantName); if (participant) this.currentUser.set({ name: participant.name, role: participant.role }); }
   setActiveIssue(issue: Issue): void { this.activeIssue.set(issue); }
   releaseIssue(issue: Issue): void { this.activeIssue.set(issue); this.releasedIssue.set(issue); }
 
-  setProgress(estimatedDevelopers: string[], pendingDevelopers: string[]): void {
-    const developerNames = new Set([...estimatedDevelopers, ...pendingDevelopers]);
+  setProgress(developerProgress: ReadonlyArray<Pick<Participant, 'name' | 'joinedAt' | 'estimated'>>): void {
     this.participants.update((participants) => {
       const scrumMasters = participants.filter((person) => person.role === 'Scrum Master');
-      const developers = [...developerNames].map((name) => ({ name, role: 'Entwickler' as const, estimated: estimatedDevelopers.includes(name) }));
+      const developers = developerProgress
+        .map((developer) => ({ ...developer, role: 'Entwickler' as const }))
+        .sort((first, second) => first.joinedAt.localeCompare(second.joinedAt) || first.name.localeCompare(second.name));
       return [...scrumMasters, ...developers];
     });
   }

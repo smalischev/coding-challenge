@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, Input } from '@angular/core';
 import { Participant } from '../../models';
 
 @Component({
@@ -10,8 +10,6 @@ import { Participant } from '../../models';
 export class ParticipantsComponent {
   @Input({ required: true }) participants: Participant[] = [];
   @Input({ required: true }) currentUserName = '';
-  @Input() testUserSelectionEnabled = false;
-  @Output() userSelected = new EventEmitter<string>();
   get developers(): Participant[] {
     return this.participants.filter((person) => person.role === 'Entwickler');
   }

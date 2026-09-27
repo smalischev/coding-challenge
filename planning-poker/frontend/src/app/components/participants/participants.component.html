@@ -4,14 +4,7 @@
     <span>{{ estimatedCount }} / {{ developers.length }} geschätzt</span>
   </div>
   @for (person of participants; track person.name) {
-    <button
-      type="button"
-      class="person"
-      [class.current-user]="person.name === currentUserName"
-      [class.selectable]="testUserSelectionEnabled"
-      [disabled]="!testUserSelectionEnabled"
-      (click)="userSelected.emit(person.name)"
-    >
+    <div class="person" [class.current-user]="person.name === currentUserName">
       <span class="status" [class.complete]="person.estimated" [class.owner]="person.role === 'Scrum Master'">{{
         person.role === 'Scrum Master' ? '◆' : person.estimated ? '✓' : '○'
       }}</span>
@@ -27,7 +20,7 @@
       } @else {
         <span class="state" [class.complete]="person.estimated">{{ person.estimated ? 'hat geschätzt' : 'ausstehend' }}</span>
       }
-    </button>
+    </div>
   }
   @if (allEstimated) {
     <p class="progress-complete">✓ Alle Entwickler haben geschätzt.</p>

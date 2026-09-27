@@ -1,13 +1,13 @@
 # Offene Tests
 
-- [ ] **Ungültigen Session-Beitritt testen**
+- [x] **Ungültigen Session-Beitritt testen**
 
-  Prüfen, dass ein Developer bei einer ungültigen oder nicht existierenden Session-ID eine verständliche Fehlermeldung sieht.
+  Playwright prüft, dass ein Developer bei einer nicht existierenden, syntaktisch gültigen Session-ID eine verständliche Fehlermeldung sieht.
 
 
-- [ ] **Beitritt nach Freigabe ablehnen**
+- [x] **Beitritt nach Freigabe ablehnen**
 
-  Prüfen, dass ein Developer nach der Freigabe der Schätzrunde nicht mehr beitreten kann.
+  Playwright prüft, dass ein Developer nach der Freigabe der Schätzrunde nicht mehr beitreten kann und die Beitritts-Fehlermeldung sieht.
 
 
 - [ ] **Developer-Wartezustand und Freigabe testen**

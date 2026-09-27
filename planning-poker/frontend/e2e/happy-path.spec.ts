@@ -36,6 +36,9 @@ test('users complete the planning poker happy path through the UI', async ({ bro
   await pause(page);
   await page.getByRole('button', { name: 'Aufdecken' }).click();
   await expect(page.getByRole('heading', { name: 'Aufgedeckte Karten' })).toBeVisible();
+  await expect(developerOnePage.getByRole('heading', { name: 'Aufgedeckte Karten' })).toBeVisible({ timeout: 10_000 });
+  await expect(developerOnePage.getByText(developerOne.username)).toBeVisible();
+  await expect(developerOnePage.getByText('5', { exact: true })).toBeVisible();
   await pause(page);
   await page.getByRole('button', { name: 'Nach GitLab übernehmen' }).click();
   await expect(page.getByText(/Ergebnis .* wurde an GitLab übergeben/)).toBeVisible();

@@ -32,15 +32,6 @@ h2 {
   text-align: left;
   width: 100%;
 }
-.person:disabled {
-  opacity: 1;
-}
-.person.selectable {
-  cursor: pointer;
-}
-.person.selectable:hover {
-  background: #f7f7ff;
-}
 .person.current-user {
   background: #f7f7ff;
   margin: 0 -7px;

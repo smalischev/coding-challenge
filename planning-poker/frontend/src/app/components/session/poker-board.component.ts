@@ -10,7 +10,6 @@ import { ParticipantsComponent } from '../participants/participants.component';
 import { ResultsComponent } from '../results/results.component';
 import { ScrumMasterNoticeComponent } from '../scrum-master-notice/scrum-master-notice.component';
 import { WaitingForReleaseComponent } from '../waiting-for-release/waiting-for-release.component';
-import { environment } from '../../../environments/environment';
 import { PokerSessionStore } from '../../store/poker-session.store';
 import { SessionSetupComponent, CreateSessionInput } from './session-setup.component';
 import { SessionService } from './session.service';
@@ -29,11 +28,12 @@ import { CardValue, Issue } from '../../models';
 })
 export class PokerBoardComponent {
   readonly store = inject(PokerSessionStore);
-  readonly environment = environment;
   readonly error = signal('');
   readonly finalizingResult = signal(false);
   readonly resultMessage = signal('');
   readonly allEstimatedNotification = signal(false);
+  readonly estimateSubmitting = signal(false);
+  readonly estimateResetToken = signal(0);
   private readonly authentication = inject(AuthenticationService);
   private readonly router = inject(Router);
   private readonly sessions = inject(SessionService);
@@ -76,6 +76,27 @@ export class PokerBoardComponent {
     });
     checkRelease();
     const pollingId = window.setInterval(checkRelease, 1_000);
+    onCleanup(() => window.clearInterval(pollingId));
+  });
+  private readonly synchronizeRevealedRoundForDeveloper = effect((onCleanup) => {
+    const sessionId = this.store.sessionId();
+    if (!sessionId || this.store.currentUser().role !== 'Entwickler') return;
+
+    const synchronize = () => this.results.getEstimates(sessionId).subscribe({
+      next: (estimates) => this.store.setRevealedEstimates(
+        Object.fromEntries(estimates.map((estimate) => [estimate.developerName, this.fromBackendCard(estimate.value)]))
+      ),
+      error: () => {
+        if (this.store.revealed()) {
+          this.store.startNewRound();
+          this.loadActiveIssue();
+          this.refreshProgress();
+        }
+      }
+    });
+
+    synchronize();
+    const pollingId = window.setInterval(synchronize, 500);
     onCleanup(() => window.clearInterval(pollingId));
   });
 
@@ -128,15 +149,25 @@ export class PokerBoardComponent {
   }
 
   submitEstimate(card: CardValue): void {
+    if (this.estimateSubmitting()) return;
+    this.estimateSubmitting.set(true);
     this.estimations.submit(this.store.sessionId(), { developerName: this.store.currentUser().name, value: this.toBackendCard(card) }).subscribe({
-      next: () => { this.store.selectCard(card); this.refreshProgress(); },
-      error: () => this.error.set('Die Schätzung konnte nicht gespeichert werden.')
+      next: () => {
+        this.store.selectCard(card);
+        this.estimateSubmitting.set(false);
+        this.refreshProgress();
+      },
+      error: () => {
+        this.estimateSubmitting.set(false);
+        this.estimateResetToken.update((token) => token + 1);
+        this.error.set('Die Schätzung konnte nicht gespeichert werden.');
+      }
     });
   }
 
   revealRound(): void {
     this.estimations.reveal(this.store.sessionId(), { scrumMasterName: this.store.currentUser().name }).subscribe({
-      next: () => this.results.getEstimates(this.store.sessionId()).subscribe((estimates) => this.store.setRevealedEstimates(Object.fromEntries(estimates.map((estimate) => [estimate.developerName, this.fromBackendCard(estimate.value)])))),
+      next: () => this.loadRevealedEstimates(),
       error: () => this.error.set('Die Runde konnte nicht aufgedeckt werden.')
     });
   }
@@ -153,7 +184,12 @@ export class PokerBoardComponent {
   }
 
   private loadActiveIssue(): void { this.issues.getActive(this.store.sessionId()).subscribe({ next: (issue) => this.store.setActiveIssue(this.toIssue(issue)), error: () => this.error.set('Das aktive Issue konnte nicht geladen werden.') }); }
-  private refreshProgress(): void { this.estimations.getProgress(this.store.sessionId()).subscribe({ next: (progress) => this.store.setProgress(progress.estimatedDevelopers, progress.pendingDevelopers) }); }
+  private refreshProgress(): void { this.estimations.getProgress(this.store.sessionId()).subscribe({ next: (progress) => this.store.setProgress(progress.developers) }); }
+  private loadRevealedEstimates(): void {
+    this.results.getEstimates(this.store.sessionId()).subscribe((estimates) => this.store.setRevealedEstimates(
+      Object.fromEntries(estimates.map((estimate) => [estimate.developerName, this.fromBackendCard(estimate.value)]))
+    ));
+  }
   private toIssue(issue: { gitlabIssueIid: number; title: string; description: string }): Issue { return { id: issue.gitlabIssueIid, title: issue.title, description: issue.description }; }
   private toBackendCard(card: CardValue): BackendCardValue { return ({ '0': 'ZERO', '1': 'ONE', '2': 'TWO', '3': 'THREE', '5': 'FIVE', '8': 'EIGHT', '13': 'THIRTEEN', '21': 'TWENTY_ONE', '34': 'THIRTY_FOUR', '?': 'QUESTION_MARK', '☕': 'COFFEE' } as const)[card]; }
   private fromBackendCard(card: BackendCardValue): CardValue { return ({ ZERO: '0', ONE: '1', TWO: '2', THREE: '3', FIVE: '5', EIGHT: '8', THIRTEEN: '13', TWENTY_ONE: '21', THIRTY_FOUR: '34', QUESTION_MARK: '?', COFFEE: '☕' } as const)[card]; }

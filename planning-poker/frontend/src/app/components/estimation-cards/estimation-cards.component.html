@@ -4,13 +4,15 @@
       <h2>Deine Schätzung</h2>
       <p>Wähle eine Karte. Deine Auswahl bleibt verdeckt.</p>
     </div>
-    @if (selectedCard) {
+    @if (submitting) {
+      <span class="saving">Wird gespeichert …</span>
+    } @else if (selectedCard) {
       <span class="chosen">Ausgewählt</span>
     }
   </div>
   <div class="cards">
     @for (card of cards; track card) {
-      <button type="button" [class.selected]="card === selectedCard" (click)="select(card)" [attr.aria-pressed]="card === selectedCard">
+      <button type="button" [class.selected]="card === selectedCard" [disabled]="submitting" (click)="select(card)" [attr.aria-pressed]="card === selectedCard">
         {{ card }}
       </button>
     }

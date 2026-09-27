@@ -28,16 +28,13 @@
       <p class="completion-notice">✓ Alle Entwickler haben geschätzt. Die Runde kann aufgedeckt werden.</p>
     }
     <div class="workspace">
-      <app-participants
-        [participants]="store.participants()"
-        [currentUserName]="store.currentUser().name"
-        [testUserSelectionEnabled]="environment.enableTestUserSelection"
-        (userSelected)="store.setTestCurrentUser($event)"
-      ></app-participants>
+      <app-participants [participants]="store.participants()" [currentUserName]="store.currentUser().name"></app-participants>
       <div class="round">
         @if (store.releasedIssue() && store.currentUser().role === 'Entwickler') {
           <app-estimation-cards
             [existingCard]="store.estimates()[store.currentUser().name] ?? null"
+            [submitting]="estimateSubmitting()"
+            [resetSelectionToken]="estimateResetToken()"
             (cardSelected)="submitEstimate($event)"
           ></app-estimation-cards>
         } @else if (store.currentUser().role === 'Scrum Master') {

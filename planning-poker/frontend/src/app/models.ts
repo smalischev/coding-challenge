@@ -5,6 +5,7 @@ export interface Participant {
   name: string;
   role: UserRole;
   estimated: boolean;
+  joinedAt: string;
 }
 
 export interface Issue {
