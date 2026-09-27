@@ -144,6 +144,7 @@ public class PlanningPokerResource {
     public EstimationProgressResponse getEstimationProgress(@PathParam("planningPokerId") UUID planningPokerId) {
         EstimationProgress progress = planningPokerBusiness.getEstimationProgress(planningPokerId);
         return new EstimationProgressResponse(
+                progress.scrumMasterName(),
                 namesOf(progress.estimatedDevelopers()),
                 namesOf(progress.pendingDevelopers()),
                 progress.developerJoinedAt().entrySet().stream()
@@ -153,7 +154,9 @@ public class PlanningPokerResource {
                                 entry.getValue().toString(),
                                 progress.estimatedDevelopers().contains(entry.getKey())
                         ))
-                        .toList()
+                        .toList(),
+                progress.released(),
+                progress.revealed()
         );
     }
 
@@ -170,14 +173,17 @@ public class PlanningPokerResource {
     @Path("/{planningPokerId}/events")
     @Produces(MediaType.SERVER_SENT_EVENTS)
     @RolesAllowed({"SCRUM_MASTER", "DEVELOPER"})
-    @Operation(summary = "Benachrichtigungen abonnieren", description = "Öffnet einen Server-Sent-Events-Stream für den Session-Owner. Sobald alle Developer geschätzt haben, wird das Ereignis all-developers-estimated mit dem JSON-Wert {\"allDevelopersEstimated\":true} gesendet.")
+    @Operation(summary = "Sitzungsereignisse abonnieren", description = "Öffnet einen Server-Sent-Events-Stream für Mitglieder der Sitzung. Die Ereignisse estimation-progress, issue-released, round-revealed und round-started erhalten alle Abonnenten. all-developers-estimated wird ausschließlich an den Scrum-Master-Owner gesendet. Developer dürfen den Stream abonnieren.")
     @APIResponse(responseCode = "200", description = "Offener SSE-Stream")
-    @APIResponse(responseCode = "403", description = "Der angemeldete Scrum Master ist nicht Owner der Session")
+    @APIResponse(responseCode = "403", description = "Der angemeldete Benutzer ist Scrum Master, aber nicht Owner der Sitzung; Developer dürfen den Stream abonnieren")
     public void subscribeToEstimationCompletion(@PathParam("planningPokerId") UUID planningPokerId,
                                                 @Context Sse sse,
                                                 @Context SseEventSink eventSink) {
         var member = authenticatedMemberFactory.create();
         boolean sessionOwner = member instanceof ScrumMaster scrumMaster && planningPokerBusiness.isSessionOwner(planningPokerId, scrumMaster);
+        if (member instanceof ScrumMaster && !sessionOwner) {
+            throw new ForbiddenException("only the session owner can subscribe as scrum master");
+        }
         estimationCompletionNotifier.subscribe(planningPokerId, sse, eventSink, sessionOwner);
     }
 
@@ -294,9 +300,12 @@ public class PlanningPokerResource {
     }
 
     public record EstimationProgressResponse(
+            String scrumMasterName,
             Set<String> estimatedDevelopers,
             Set<String> pendingDevelopers,
-            List<DeveloperProgressResponse> developers
+            List<DeveloperProgressResponse> developers,
+            boolean released,
+            boolean revealed
     ) {
     }
 

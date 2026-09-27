@@ -21,8 +21,11 @@ public class EstimationCompletionNotifier {
     public void subscribe(UUID planningPokerId, Sse sse, SseEventSink eventSink, boolean sessionOwner) {
         Subscription subscription = subscriptions.computeIfAbsent(planningPokerId,
                 ignored -> new Subscription(sse, sse.newBroadcaster(), sse.newBroadcaster()));
-        subscription.allSubscribers().register(eventSink);
-        if (sessionOwner) subscription.sessionOwners().register(eventSink);
+        if (sessionOwner) {
+            subscription.sessionOwners().register(eventSink);
+        } else {
+            subscription.otherSubscribers().register(eventSink);
+        }
     }
 
     void notifyScrumMaster(@Observes AllDevelopersEstimated event) {
@@ -42,12 +45,14 @@ public class EstimationCompletionNotifier {
         } catch (Exception exception) {
             throw new RuntimeException(exception);
         }
-        (ownersOnly ? subscription.sessionOwners() : subscription.allSubscribers()).broadcast(
-                subscription.sse().newEventBuilder().name(name)
-                        .mediaType(MediaType.APPLICATION_JSON_TYPE).data(String.class, json).build()
-        );
+        var event = subscription.sse().newEventBuilder().name(name)
+                .mediaType(MediaType.APPLICATION_JSON_TYPE).data(String.class, json).build();
+        subscription.sessionOwners().broadcast(event);
+        if (!ownersOnly) {
+            subscription.otherSubscribers().broadcast(event);
+        }
     }
 
-    private record Subscription(Sse sse, SseBroadcaster allSubscribers, SseBroadcaster sessionOwners) {
+    private record Subscription(Sse sse, SseBroadcaster sessionOwners, SseBroadcaster otherSubscribers) {
     }
 }

@@ -126,14 +126,18 @@ Die Anwendung wird einschließlich Image-Build gestartet:
 docker compose up --build
 ```
 
-Das Backend ist danach unter `http://localhost:8080` erreichbar. Zum Beenden
-der Anwendung genügt `docker compose down`.
+Das Angular-Frontend ist danach unter `http://localhost:4200` beziehungsweise
+`http://<server-ip>:4200` erreichbar. Es läuft in einem eigenen
+Nginx-Container.
+Nginx leitet `/api/*` einschließlich Server-Sent Events intern an das Backend
+weiter. Der Browser kommuniziert somit nur mit einer Origin und benötigt keine
+CORS-Konfiguration. Zum Beenden genügt `docker compose down`.
 
 ### Schnittstellendokumentation
 
-Swagger UI ist im laufenden Backend unter
-`http://localhost:8080/q/swagger-ui` erreichbar. Die maschinenlesbare
-OpenAPI-Beschreibung liefert `http://localhost:8080/q/openapi`.
+Swagger UI und die maschinenlesbare OpenAPI-Beschreibung sind innerhalb des
+Backend-Containers unter `/q/swagger-ui` beziehungsweise `/q/openapi`
+erreichbar.
 
 Bei einem Maven-Build wird zusätzlich
 `target/openapi/planning-poker-api.yaml` erzeugt. Sie dokumentiert die

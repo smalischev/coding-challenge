@@ -1,8 +1,6 @@
 services:
   planning-poker-backend:
     build: .
-    ports:
-      - "8080:8080"
     environment:
       QUARKUS_PROFILE: dev
       GITLAB_URL: ${GITLAB_URL}
@@ -12,3 +10,11 @@ services:
     volumes:
       - ${JWT_PRIVATE_KEY_FILE}:/run/secrets/jwt-private-key.pem:ro
       - ${JWT_PUBLIC_KEY_FILE}:/run/secrets/jwt-public-key.pem:ro
+
+  planning-poker-frontend:
+    build:
+      context: ../frontend
+    ports:
+      - "4200:80"
+    depends_on:
+      - planning-poker-backend

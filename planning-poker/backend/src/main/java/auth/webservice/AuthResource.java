@@ -7,6 +7,7 @@ import domain.Role;
 import io.smallrye.jwt.build.Jwt;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.ClientErrorException;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
@@ -36,7 +37,9 @@ public class AuthResource {
     @APIResponse(responseCode = "201", description = "Benutzer wurde registriert")
     public Response register(Credentials credentials) {
         validate(credentials, true);
-        userRepository.save(new UserAccount(credentials.username(), passwordHasher.hash(credentials.password()), credentials.role()));
+        if (!userRepository.save(new UserAccount(credentials.username(), passwordHasher.hash(credentials.password()), credentials.role()))) {
+            throw new ClientErrorException("username is already registered", Response.Status.CONFLICT);
+        }
         return Response.status(Response.Status.CREATED).build();
     }
 
@@ -50,7 +53,7 @@ public class AuthResource {
         if (!passwordHasher.matches(credentials.password(), user.passwordHash())) {
             throw new IllegalArgumentException("invalid username or password");
         }
-        return new TokenResponse(Jwt.upn(user.username()).groups(user.role().name()).sign(), "Bearer", 3600);
+        return new TokenResponse(Jwt.upn(user.username()).subject(user.username()).groups(user.role().name()).sign(), "Bearer", 3600);
     }
 
     @POST

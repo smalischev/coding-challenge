@@ -1,9 +1,11 @@
 package webservice;
 
+import auth.repository.InMemoryUserRepository;
 import business.GitLabIssueGateway;
 import domain.Issue;
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
+import jakarta.inject.Inject;
 import io.restassured.RestAssured;
 import io.restassured.builder.RequestSpecBuilder;
 import io.restassured.specification.RequestSpecification;
@@ -37,6 +39,8 @@ import static org.mockito.Mockito.when;
 class PlanningPokerResourceTest {
     @InjectMock
     GitLabIssueGateway gitLabIssueGateway;
+    @Inject
+    InMemoryUserRepository userRepository;
     private String scrumMasterToken;
     private String alexToken;
     private String kimToken;
@@ -89,14 +93,22 @@ class PlanningPokerResourceTest {
 
         as(scrumMasterToken).when().get("/planning-pokers/{id}/active-round/progress", planningPokerId)
                 .then().statusCode(200)
+                .body("scrumMasterName", equalTo(scrumMasterName))
                 .body("estimatedDevelopers", equalTo(java.util.List.of()))
                 .body("pendingDevelopers", containsInAnyOrder(alexName, kimName))
                 .body("developers.name", equalTo(java.util.List.of(alexName, kimName)))
-                .body("developers.joinedAt", everyItem(notNullValue()));
+                .body("developers.joinedAt", everyItem(notNullValue()))
+                .body("released", equalTo(false))
+                .body("revealed", equalTo(false));
 
         as(scrumMasterToken).contentType(JSON).body(Map.of("scrumMasterName", scrumMasterName))
                 .when().post("/planning-pokers/{id}/active-issue/release", planningPokerId)
                 .then().statusCode(204);
+
+        as(scrumMasterToken).when().get("/planning-pokers/{id}/active-round/progress", planningPokerId)
+                .then().statusCode(200)
+                .body("released", equalTo(true))
+                .body("revealed", equalTo(false));
 
         estimate(planningPokerId, alexName, "FIVE", alexToken);
         estimate(planningPokerId, kimName, "EIGHT", kimToken);
@@ -107,6 +119,11 @@ class PlanningPokerResourceTest {
         as(scrumMasterToken).contentType(JSON).body(Map.of("scrumMasterName", scrumMasterName))
                 .when().post("/planning-pokers/{id}/active-round/reveal", planningPokerId)
                 .then().statusCode(204);
+
+        as(scrumMasterToken).when().get("/planning-pokers/{id}/active-round/progress", planningPokerId)
+                .then().statusCode(200)
+                .body("released", equalTo(true))
+                .body("revealed", equalTo(true));
 
         as(scrumMasterToken).when().get("/planning-pokers/{id}/active-round/estimates", planningPokerId)
                 .then().statusCode(200).body("developerName", containsInAnyOrder(alexName, kimName));
@@ -125,6 +142,27 @@ class PlanningPokerResourceTest {
         as(scrumMasterToken).contentType(JSON).body(Map.of("scrumMasterName", scrumMasterName))
                 .when().post("/planning-pokers/{id}/active-round", planningPokerId)
                 .then().statusCode(204);
+    }
+
+    @Test
+    void registrationRejectsAnExistingUsernameRegardlessOfRole() {
+        String username = "Taylor-" + UUID.randomUUID();
+
+        given().contentType(JSON).body(Map.of("username", username, "password", "a-secure-test-password", "role", "DEVELOPER"))
+                .when().post("/auth/register")
+                .then().statusCode(201);
+
+        given().contentType(JSON).body(Map.of("username", username, "password", "a-secure-test-password", "role", "SCRUM_MASTER"))
+                .when().post("/auth/register")
+                .then().statusCode(409);
+    }
+
+    @Test
+    void tokenOfDeletedUserIsRejected() {
+        userRepository.delete(alexName);
+
+        as(alexToken).when().get("/planning-pokers/{id}/active-round/progress", UUID.randomUUID())
+                .then().statusCode(401);
     }
 
     // Prüft, dass ein Developer keine Planning-Poker-Session erstellen darf, weil dies dem Scrum Master vorbehalten ist.
@@ -148,7 +186,7 @@ class PlanningPokerResourceTest {
                 .extract().path("planningPokerId");
 
         as(otherScrumMasterToken)
-                .when().get("/planning-pokers/{id}/active-round/events", planningPokerId)
+                .when().get("/planning-pokers/{id}/events", planningPokerId)
                 .then().statusCode(403);
     }
 
@@ -169,7 +207,7 @@ class PlanningPokerResourceTest {
                 .then().statusCode(204);
 
         HttpRequest request = HttpRequest.newBuilder(URI.create(
-                        "http://localhost:" + RestAssured.port + "/planning-pokers/" + planningPokerId + "/active-round/events"))
+                        "http://localhost:" + RestAssured.port + "/planning-pokers/" + planningPokerId + "/events"))
                 .header("Accept", "text/event-stream")
                 .header("Authorization", "Bearer " + scrumMasterToken)
                 .GET()
@@ -187,12 +225,17 @@ class PlanningPokerResourceTest {
             String eventName = null;
             String eventData = null;
             String line;
-            while ((line = reader.readLine()) != null && eventData == null) {
+            while ((line = reader.readLine()) != null) {
                 if (line.startsWith("event:")) {
                     eventName = line.substring("event:".length()).trim();
                 }
                 if (line.startsWith("data:")) {
                     eventData = line.substring("data:".length()).trim();
+                    if ("all-developers-estimated".equals(eventName)) {
+                        break;
+                    }
+                    eventName = null;
+                    eventData = null;
                 }
             }
 

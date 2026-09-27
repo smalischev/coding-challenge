@@ -187,7 +187,14 @@ public class PlanningPoker {
         Set<Developer> pendingDevelopers = new LinkedHashSet<>(developers);
         pendingDevelopers.removeAll(estimatedDevelopers);
 
-        return new EstimationProgress(estimatedDevelopers, pendingDevelopers, developerJoinedAt);
+        return new EstimationProgress(
+                owner.getName(),
+                estimatedDevelopers,
+                pendingDevelopers,
+                developerJoinedAt,
+                currentRound.isReleased(),
+                currentRound.isRevealed()
+        );
     }
 
     public Map<CardValue, Long> groupEstimates() {

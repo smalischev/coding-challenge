@@ -10,10 +10,16 @@ import java.util.concurrent.ConcurrentHashMap;
 public class InMemoryUserRepository {
     private final Map<String, UserAccount> users = new ConcurrentHashMap<>();
 
-    public void save(UserAccount user) {
-        if (users.putIfAbsent(user.username(), user) != null) {
-            throw new IllegalArgumentException("username is already registered");
-        }
+    public boolean save(UserAccount user) {
+        return users.putIfAbsent(user.username(), user) == null;
+    }
+
+    public boolean exists(String username) {
+        return users.containsKey(username);
+    }
+
+    public void delete(String username) {
+        users.remove(username);
     }
 
     public UserAccount getByUsername(String username) {
