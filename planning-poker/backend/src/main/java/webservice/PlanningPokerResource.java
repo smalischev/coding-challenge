@@ -81,6 +81,7 @@ public class PlanningPokerResource {
     public Response join(@PathParam("planningPokerId") UUID planningPokerId, DeveloperRequest request) {
         Developer developer = (Developer) authenticatedMemberFactory.create();
         planningPokerBusiness.join(planningPokerId, developer, developer);
+        notifyProgress(planningPokerId);
         return Response.noContent().build();
     }
 
@@ -117,6 +118,8 @@ public class PlanningPokerResource {
     @APIResponse(responseCode = "204", description = "Issue wurde freigegeben")
     public Response releaseActiveIssue(@PathParam("planningPokerId") UUID planningPokerId, ScrumMasterRequest request) {
         planningPokerBusiness.releaseActiveIssue(planningPokerId, authenticatedMemberFactory.create());
+        Issue issue = planningPokerBusiness.getActiveIssue(planningPokerId);
+        estimationCompletionNotifier.broadcast(planningPokerId, "issue-released", new ActiveIssueResponse(issue.getGitlabIssueIid(), issue.getTitle(), issue.getDescription()));
         return Response.noContent().build();
     }
 
@@ -129,6 +132,7 @@ public class PlanningPokerResource {
     public Response estimate(@PathParam("planningPokerId") UUID planningPokerId, EstimateRequest request) {
         Developer developer = (Developer) authenticatedMemberFactory.create();
         planningPokerBusiness.estimate(planningPokerId, developer, developer, request.value());
+        notifyProgress(planningPokerId);
         return Response.noContent().build();
     }
 
@@ -163,20 +167,18 @@ public class PlanningPokerResource {
     }
 
     @GET
-    @Path("/{planningPokerId}/active-round/events")
+    @Path("/{planningPokerId}/events")
     @Produces(MediaType.SERVER_SENT_EVENTS)
-    @RolesAllowed("SCRUM_MASTER")
+    @RolesAllowed({"SCRUM_MASTER", "DEVELOPER"})
     @Operation(summary = "Benachrichtigungen abonnieren", description = "Öffnet einen Server-Sent-Events-Stream für den Session-Owner. Sobald alle Developer geschätzt haben, wird das Ereignis all-developers-estimated mit dem JSON-Wert {\"allDevelopersEstimated\":true} gesendet.")
     @APIResponse(responseCode = "200", description = "Offener SSE-Stream")
     @APIResponse(responseCode = "403", description = "Der angemeldete Scrum Master ist nicht Owner der Session")
     public void subscribeToEstimationCompletion(@PathParam("planningPokerId") UUID planningPokerId,
                                                 @Context Sse sse,
                                                 @Context SseEventSink eventSink) {
-        ScrumMaster scrumMaster = (ScrumMaster) authenticatedMemberFactory.create();
-        if (!planningPokerBusiness.isSessionOwner(planningPokerId, scrumMaster)) {
-            throw new ForbiddenException();
-        }
-        estimationCompletionNotifier.subscribe(planningPokerId, sse, eventSink);
+        var member = authenticatedMemberFactory.create();
+        boolean sessionOwner = member instanceof ScrumMaster scrumMaster && planningPokerBusiness.isSessionOwner(planningPokerId, scrumMaster);
+        estimationCompletionNotifier.subscribe(planningPokerId, sse, eventSink, sessionOwner);
     }
 
     @POST
@@ -187,6 +189,7 @@ public class PlanningPokerResource {
     public Response reveal(@PathParam("planningPokerId") UUID planningPokerId, ScrumMasterRequest request) {
         ScrumMaster scrumMaster = (ScrumMaster) authenticatedMemberFactory.create();
         planningPokerBusiness.reveal(planningPokerId, scrumMaster, scrumMaster);
+        estimationCompletionNotifier.broadcast(planningPokerId, "round-revealed", getEstimateValues(planningPokerId));
         return Response.noContent().build();
     }
 
@@ -239,6 +242,8 @@ public class PlanningPokerResource {
     @APIResponse(responseCode = "204", description = "Neue Schätzrunde wurde gestartet")
     public Response startNewRound(@PathParam("planningPokerId") UUID planningPokerId, ScrumMasterRequest request) {
         planningPokerBusiness.startNewRound(planningPokerId, authenticatedMemberFactory.create());
+        estimationCompletionNotifier.broadcast(planningPokerId, "round-started", Map.of());
+        notifyProgress(planningPokerId);
         return Response.noContent().build();
     }
 
@@ -258,6 +263,10 @@ public class PlanningPokerResource {
 
     private Set<String> namesOf(Set<Developer> developers) {
         return developers.stream().map(Developer::getName).collect(java.util.stream.Collectors.toSet());
+    }
+
+    private void notifyProgress(UUID planningPokerId) {
+        estimationCompletionNotifier.broadcast(planningPokerId, "estimation-progress", getEstimationProgress(planningPokerId));
     }
 
     public record CreateSessionRequest(String scrumMasterName, long gitlabProjectId, long gitlabIssueIid) {
