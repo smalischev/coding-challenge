@@ -141,7 +141,15 @@ public class PlanningPokerResource {
         EstimationProgress progress = planningPokerBusiness.getEstimationProgress(planningPokerId);
         return new EstimationProgressResponse(
                 namesOf(progress.estimatedDevelopers()),
-                namesOf(progress.pendingDevelopers())
+                namesOf(progress.pendingDevelopers()),
+                progress.developerJoinedAt().entrySet().stream()
+                        .sorted(Map.Entry.comparingByValue())
+                        .map(entry -> new DeveloperProgressResponse(
+                                entry.getKey().getName(),
+                                entry.getValue().toString(),
+                                progress.estimatedDevelopers().contains(entry.getKey())
+                        ))
+                        .toList()
         );
     }
 
@@ -276,7 +284,14 @@ public class PlanningPokerResource {
     public record FinalizeResultRequest(String scrumMasterName, CardValue value) {
     }
 
-    public record EstimationProgressResponse(Set<String> estimatedDevelopers, Set<String> pendingDevelopers) {
+    public record EstimationProgressResponse(
+            Set<String> estimatedDevelopers,
+            Set<String> pendingDevelopers,
+            List<DeveloperProgressResponse> developers
+    ) {
+    }
+
+    public record DeveloperProgressResponse(String name, String joinedAt, boolean estimated) {
     }
 
     public record AllDevelopersEstimatedResponse(boolean allDevelopersEstimated) {

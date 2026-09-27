@@ -164,9 +164,9 @@ class PlanningPokerBusinessTest {
         assertDoesNotThrow(() -> business.estimate(planningPokerId, callingDeveloper, joinedDeveloper, CardValue.FIVE));
     }
 
-    // Prüft, dass kein zweiter Entwickler mit einem bereits verwendeten Namen beitreten darf.
+    // Prüft, dass ein erneuter Beitritt mit demselben Namen keine Änderung auslöst.
     @Test
-    void developerWithDuplicateNameCannotJoin() {
+    void developerWithDuplicateNameCanJoinIdempotently() {
         ScrumMaster scrumMaster = new ScrumMaster("Mara");
         Developer firstDeveloper = new Developer("Alex");
         Developer duplicateDeveloper = new Developer("Alex");
@@ -174,7 +174,7 @@ class PlanningPokerBusinessTest {
         UUID planningPokerId = business.createPlanningPoker(scrumMaster, 123L, new Issue());
         business.join(planningPokerId, firstDeveloper, firstDeveloper);
 
-        assertThrows(RuntimeException.class, () -> business.join(planningPokerId, duplicateDeveloper, duplicateDeveloper));
+        assertDoesNotThrow(() -> business.join(planningPokerId, duplicateDeveloper, duplicateDeveloper));
     }
 
     // Prüft, dass nach der Freigabe keine weiteren Entwickler beitreten dürfen.
@@ -189,16 +189,29 @@ class PlanningPokerBusinessTest {
         assertThrows(RuntimeException.class, () -> business.join(planningPokerId, developer, developer));
     }
 
-    // Prüft, dass ein Entwickler nur einmal an der Sitzung teilnehmen kann.
+    // Prüft, dass ein erneuter Beitritt desselben Entwicklers keine Änderung auslöst.
     @Test
-    void developerCannotJoinTwice() {
+    void developerCanJoinTwiceIdempotently() {
         ScrumMaster scrumMaster = new ScrumMaster("Mara");
         Developer developer = new Developer("Alex");
         PlanningPokerBusiness business = new PlanningPokerBusiness((projectId, issueIid, label) -> { });
         UUID planningPokerId = business.createPlanningPoker(scrumMaster, 123L, new Issue());
         business.join(planningPokerId, developer, developer);
 
-        assertThrows(RuntimeException.class, () -> business.join(planningPokerId, developer, developer));
+        assertDoesNotThrow(() -> business.join(planningPokerId, developer, developer));
+    }
+
+    // Prüft, dass ein bereits beigetretener Entwickler auch nach der Freigabe erneut beitreten kann.
+    @Test
+    void joinedDeveloperCanJoinIdempotentlyAfterRoundIsReleased() {
+        ScrumMaster scrumMaster = new ScrumMaster("Mara");
+        Developer developer = new Developer("Alex");
+        PlanningPokerBusiness business = new PlanningPokerBusiness((projectId, issueIid, label) -> { });
+        UUID planningPokerId = business.createPlanningPoker(scrumMaster, 123L, new Issue());
+        business.join(planningPokerId, developer, developer);
+        business.releaseActiveIssue(planningPokerId, scrumMaster);
+
+        assertDoesNotThrow(() -> business.join(planningPokerId, developer, developer));
     }
 
     // Prüft, dass eine neue Schätzung desselben Entwicklers die vorherige ersetzt.

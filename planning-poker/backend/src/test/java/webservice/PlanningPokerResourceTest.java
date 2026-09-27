@@ -25,7 +25,9 @@ import java.util.concurrent.TimeUnit;
 import static io.restassured.RestAssured.given;
 import static io.restassured.http.ContentType.JSON;
 import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.everyItem;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.verify;
@@ -88,7 +90,9 @@ class PlanningPokerResourceTest {
         as(scrumMasterToken).when().get("/planning-pokers/{id}/active-round/progress", planningPokerId)
                 .then().statusCode(200)
                 .body("estimatedDevelopers", equalTo(java.util.List.of()))
-                .body("pendingDevelopers", containsInAnyOrder(alexName, kimName));
+                .body("pendingDevelopers", containsInAnyOrder(alexName, kimName))
+                .body("developers.name", equalTo(java.util.List.of(alexName, kimName)))
+                .body("developers.joinedAt", everyItem(notNullValue()));
 
         as(scrumMasterToken).contentType(JSON).body(Map.of("scrumMasterName", scrumMasterName))
                 .when().post("/planning-pokers/{id}/active-issue/release", planningPokerId)

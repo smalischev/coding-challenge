@@ -3,6 +3,8 @@ package domain;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.time.Instant;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.OptionalInt;
 import java.util.Set;
@@ -16,12 +18,14 @@ public class PlanningPoker {
     private Issue activeIssue;
     private EstimationRound currentRound;
     private final List<Developer> developers;
+    private final Map<Developer, Instant> developerJoinedAt;
     private final ScrumMaster owner;
 
     public PlanningPoker(ScrumMaster owner, long gitlabProjektID, Issue issue) {
         this.id = UUID.randomUUID();
         this.owner = owner;
         this.developers = new ArrayList<>();
+        this.developerJoinedAt = new LinkedHashMap<>();
         this.issues = new ArrayList<>();
         this.session = new Session();
         this.gitlabProjektID = gitlabProjektID;
@@ -82,14 +86,15 @@ public class PlanningPoker {
             throw new NotAllowedException("not allowed, a developer can only join for themselves");
         }
 
+        if (developers.contains(developer)) {
+            return;
+        }
+
         if(this.currentRound.isReleased())
             throw new RuntimeException("cannot join member after released estimation round");
 
-        if (developers.contains(developer)) {
-            throw new RuntimeException("member already joined the estimation round");
-        }
-
         developers.add(developer);
+        developerJoinedAt.put(developer, Instant.now());
     }
 
     public void estimate(Member member, Developer developer, CardValue cardValue) {
@@ -182,7 +187,7 @@ public class PlanningPoker {
         Set<Developer> pendingDevelopers = new LinkedHashSet<>(developers);
         pendingDevelopers.removeAll(estimatedDevelopers);
 
-        return new EstimationProgress(estimatedDevelopers, pendingDevelopers);
+        return new EstimationProgress(estimatedDevelopers, pendingDevelopers, developerJoinedAt);
     }
 
     public Map<CardValue, Long> groupEstimates() {

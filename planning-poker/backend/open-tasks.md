@@ -33,3 +33,9 @@
 - [x] **SSE-Benachrichtigung als Integrationstest prüfen**
 
   Der REST-Integrationstest öffnet einen SSE-Stream, gibt die letzte Schätzung ab und prüft den Empfang des Ereignisses `all-developers-estimated`.
+
+<br>
+
+- [ ] **Fachliche API-Fehler vereinheitlichen**
+
+  Fachliche Fehler sollen über dokumentierte HTTP-Statuscodes und ein einheitliches JSON-Fehlerformat an das Frontend geliefert werden. Dafür sind spezifische Exceptions und ein zentraler JAX-RS-ExceptionMapper vorzusehen, beispielsweise für unbekannte Sessions (`404 SESSION_NOT_FOUND`), Beitritt nach Freigabe (`409 SESSION_ALREADY_RELEASED`), bereits beigetretene Developer (`409 MEMBER_ALREADY_JOINED`) und nicht erlaubte Rollenaktionen (`403 ROLE_NOT_ALLOWED`).
