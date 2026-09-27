@@ -1,33 +1,59 @@
 <app-header [sessionId]="store.sessionId()" [currentUser]="store.currentUser().name" [currentRole]="store.currentUser().role" (logout)="logout()"></app-header>
 <main>
   @if (!store.sessionId()) {
-    <app-session-setup [role]="store.currentUser().role" [error]="error()" (createRequested)="createSession($event)" (joinRequested)="joinSession($event)"></app-session-setup>
+    <app-session-setup
+      [role]="store.currentUser().role"
+      [error]="error()"
+      (createRequested)="createSession($event)"
+      (joinRequested)="joinSession($event)"
+    ></app-session-setup>
   } @else {
-  @if (store.currentUser().role === 'Scrum Master') {
-    <app-issue-controls [issue]="store.activeIssue()" [released]="store.releasedIssue() !== null" (releaseRequested)="releaseIssue()"></app-issue-controls>
-  }
-  @if (store.currentUser().role === 'Entwickler') {
-    @if (store.releasedIssue(); as issue) {
-      <app-issue [issueId]="issue.id" [title]="issue.title" [description]="issue.description"></app-issue>
-    } @else {
-      <app-waiting-for-release></app-waiting-for-release>
+    @if (store.currentUser().role === 'Scrum Master') {
+      <app-issue-controls [issue]="store.activeIssue()" [released]="store.releasedIssue() !== null" (releaseRequested)="releaseIssue()"></app-issue-controls>
     }
-  }
-  @if (allEstimatedNotification()) { <p class="completion-notice">✓ Alle Entwickler haben geschätzt. Die Runde kann aufgedeckt werden.</p> }
-  <div class="workspace">
-    <app-participants [participants]="store.participants()" [currentUserName]="store.currentUser().name" [testUserSelectionEnabled]="environment.enableTestUserSelection" (userSelected)="store.setTestCurrentUser($event)"></app-participants>
-    <div class="round">
-      @if (store.releasedIssue() && store.currentUser().role === 'Entwickler') {
-        <app-estimation-cards [existingCard]="store.estimates()[store.currentUser().name] ?? null" (cardSelected)="submitEstimate($event)"></app-estimation-cards>
-      } @else if (store.currentUser().role === 'Scrum Master') {
-        <app-scrum-master-notice></app-scrum-master-notice>
+    @if (store.currentUser().role === 'Entwickler') {
+      @if (store.releasedIssue(); as issue) {
+        <app-issue [issueId]="issue.id" [title]="issue.title" [description]="issue.description"></app-issue>
+      } @else {
+        <app-waiting-for-release></app-waiting-for-release>
       }
-      @if (store.revealed()) { <app-results></app-results> }
-      @if (store.releasedIssue() && store.currentUser().role === 'Scrum Master') {
-        <app-moderator-controls [allEstimated]="store.allEstimated()" [revealed]="store.revealed()" [finalizing]="finalizingResult()" (reveal)="revealRound()" (newRound)="startNewRound()" (finalize)="finalizeResult($event)"></app-moderator-controls>
-        @if (resultMessage()) { <p class="result-message">{{ resultMessage() }}</p> }
-      }
+    }
+    @if (allEstimatedNotification()) {
+      <p class="completion-notice">✓ Alle Entwickler haben geschätzt. Die Runde kann aufgedeckt werden.</p>
+    }
+    <div class="workspace">
+      <app-participants
+        [participants]="store.participants()"
+        [currentUserName]="store.currentUser().name"
+        [testUserSelectionEnabled]="environment.enableTestUserSelection"
+        (userSelected)="store.setTestCurrentUser($event)"
+      ></app-participants>
+      <div class="round">
+        @if (store.releasedIssue() && store.currentUser().role === 'Entwickler') {
+          <app-estimation-cards
+            [existingCard]="store.estimates()[store.currentUser().name] ?? null"
+            (cardSelected)="submitEstimate($event)"
+          ></app-estimation-cards>
+        } @else if (store.currentUser().role === 'Scrum Master') {
+          <app-scrum-master-notice></app-scrum-master-notice>
+        }
+        @if (store.revealed()) {
+          <app-results></app-results>
+        }
+        @if (store.releasedIssue() && store.currentUser().role === 'Scrum Master') {
+          <app-moderator-controls
+            [allEstimated]="store.allEstimated()"
+            [revealed]="store.revealed()"
+            [finalizing]="finalizingResult()"
+            (reveal)="revealRound()"
+            (newRound)="startNewRound()"
+            (finalize)="finalizeResult($event)"
+          ></app-moderator-controls>
+          @if (resultMessage()) {
+            <p class="result-message">{{ resultMessage() }}</p>
+          }
+        }
+      </div>
     </div>
-  </div>
   }
 </main>

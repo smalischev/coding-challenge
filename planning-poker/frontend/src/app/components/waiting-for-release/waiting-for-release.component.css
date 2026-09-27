@@ -1,1 +1,24 @@
-.waiting { background: #fff; border: 1px solid #e5e7ef; border-radius: 10px; padding: 24px; }.eyebrow { color: #81889a; font-size: 11px; font-weight: 700; letter-spacing: .05em; margin: 0 0 9px; text-transform: uppercase; }h1 { font-size: 20px; letter-spacing: -.025em; margin: 0 0 8px; }p:not(.eyebrow) { color: #687086; font-size: 14px; margin: 0; }
+.waiting {
+  background: #fff;
+  border: 1px solid #e5e7ef;
+  border-radius: 10px;
+  padding: 24px;
+}
+.eyebrow {
+  color: #81889a;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  margin: 0 0 9px;
+  text-transform: uppercase;
+}
+h1 {
+  font-size: 20px;
+  letter-spacing: -0.025em;
+  margin: 0 0 8px;
+}
+p:not(.eyebrow) {
+  color: #687086;
+  font-size: 14px;
+  margin: 0;
+}

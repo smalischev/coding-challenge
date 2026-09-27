@@ -17,11 +17,6 @@
   Das Quarkus-Backend erlaubt Browser-Anfragen des Angular-Frontends von `http://localhost:4200` und `http://69.62.113.205:4200`; die jeweiligen Preflights wurden erfolgreich geprüft.
 
 
-- [x] **Development-Login ohne Backend ergänzen**
-
-  Im Development-Build steht eine nicht persistierte lokale Demo-Session für Anna als Scrum Master bereit. Im Production-Build ist diese Option ausgeblendet und sendet keine Backend-Anfrage.
-
-
 - [x] **Backend lokal starten und Frontend-Verbindung prüfen**
 
   Backend gemäß dessen README mit JWT-Schlüsseln gestartet. OpenAPI, CORS-Preflight sowie Registrierung und Login wurden erfolgreich gegen die laufende Instanz geprüft.

@@ -1,7 +1,14 @@
 <section class="controls">
-  <div><p class="eyebrow">Moderator · Aktives Issue</p><h2>Issue für die Schätzrunde freigeben</h2></div>
+  <div>
+    <p class="eyebrow">Moderator · Aktives Issue</p>
+    <h2>Issue für die Schätzrunde freigeben</h2>
+  </div>
   @if (issue; as activeIssue) {
-    <p class="preview">Vorschau: <strong>#{{ activeIssue.id }} · {{ activeIssue.title }}</strong></p>
-    <button type="button" (click)="releaseRequested.emit()">{{ released ? 'Bereits freigegeben' : 'Für Schätzung freigeben' }}</button>
+    <p class="preview">
+      Vorschau: <strong>#{{ activeIssue.id }} · {{ activeIssue.title }}</strong>
+    </p>
+    <button type="button" (click)="releaseRequested.emit()">
+      {{ released ? 'Bereits freigegeben' : 'Für Schätzung freigeben' }}
+    </button>
   }
 </section>

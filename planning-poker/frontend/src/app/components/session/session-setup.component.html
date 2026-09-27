@@ -1,10 +1,20 @@
-<section class="setup"><p class="eyebrow">Planning Poker</p>
+<section class="setup">
+  <p class="eyebrow">Planning Poker</p>
   @if (role === 'Scrum Master') {
-    <h2>Sitzung erstellen</h2><p>Wähle das GitLab-Issue für die erste Schätzrunde.</p>
-    <form [formGroup]="createForm" (ngSubmit)="create()"><label>GitLab-Projekt-ID<input type="number" formControlName="gitlabProjectId"></label><label>Issue-IID<input type="number" formControlName="gitlabIssueIid"></label><button type="submit">Sitzung erstellen</button></form>
+    <h2>Sitzung erstellen</h2>
+    <p>Wähle das GitLab-Issue für die erste Schätzrunde.</p>
+    <form [formGroup]="createForm" (ngSubmit)="create()">
+      <label>GitLab-Projekt-ID<input type="number" formControlName="gitlabProjectId" /></label
+      ><label>Issue-IID<input type="number" formControlName="gitlabIssueIid" /></label><button type="submit">Sitzung erstellen</button>
+    </form>
   } @else {
-    <h2>Einer Sitzung beitreten</h2><p>Gib die Session-ID ein, die dir der Scrum Master geschickt hat.</p>
-    <form [formGroup]="joinForm" (ngSubmit)="join()"><label>Session-ID<input type="text" formControlName="sessionId"></label><button type="submit">Beitreten</button></form>
+    <h2>Einer Sitzung beitreten</h2>
+    <p>Gib die Session-ID ein, die dir der Scrum Master geschickt hat.</p>
+    <form [formGroup]="joinForm" (ngSubmit)="join()">
+      <label>Session-ID<input type="text" formControlName="sessionId" /></label><button type="submit">Beitreten</button>
+    </form>
   }
-  @if (error) { <p class="error">{{ error }}</p> }
+  @if (error) {
+    <p class="error">{{ error }}</p>
+  }
 </section>

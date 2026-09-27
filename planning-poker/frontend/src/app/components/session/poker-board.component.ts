@@ -50,10 +50,33 @@ export class PokerBoardComponent {
     const sessionId = this.store.sessionId();
     if (!sessionId || this.store.currentUser().role !== 'Scrum Master' || !this.store.releasedIssue() || this.store.revealed()) return;
     const subscription = this.estimations.watchAllDevelopersEstimated(sessionId).subscribe({
-      next: () => { this.allEstimatedNotification.set(true); this.refreshProgress(); },
+      next: () => { this.allEstimatedNotification.set(true); this.store.markAllDevelopersEstimated(); },
       error: () => this.error.set('Die Echtzeit-Benachrichtigung konnte nicht verbunden werden.')
     });
     onCleanup(() => subscription.unsubscribe());
+  });
+  private readonly pollEstimationProgress = effect((onCleanup) => {
+    const sessionId = this.store.sessionId();
+    if (!sessionId) return;
+
+    this.refreshProgress();
+    const pollingId = window.setInterval(() => this.refreshProgress(), 500);
+    onCleanup(() => window.clearInterval(pollingId));
+  });
+  private readonly watchIssueReleaseForDeveloper = effect((onCleanup) => {
+    const sessionId = this.store.sessionId();
+    const issue = this.store.activeIssue();
+    if (!sessionId || !issue || this.store.currentUser().role !== 'Entwickler' || this.store.releasedIssue()) return;
+
+    const checkRelease = () => this.estimations.areAllDevelopersEstimated(sessionId).subscribe({
+      next: () => {
+        this.store.releaseIssue(issue);
+        this.refreshProgress();
+      },
+    });
+    checkRelease();
+    const pollingId = window.setInterval(checkRelease, 1_000);
+    onCleanup(() => window.clearInterval(pollingId));
   });
 
   logout(): void {

@@ -2,25 +2,44 @@
   <section class="card">
     <div class="brand"><span class="mark">P</span><span>Planning Poker</span></div>
     <h1>{{ mode === 'login' ? 'Welcome back' : 'Create your account' }}</h1>
-    <p class="intro">{{ mode === 'login' ? 'Sign in to join or moderate a planning session.' : 'Create an account to take part in Planning Poker.' }}</p>
-    <div class="tabs"><a routerLink="/login" [class.active]="mode === 'login'">Sign in</a><a routerLink="/register" [class.active]="mode === 'register'">Register</a></div>
-    @if (environment.enableDevelopmentLogin) {
-      <button class="demo" type="button" (click)="continueWithDemoSession()">Continue with demo session</button>
-      <p class="demo-hint">Available only in the development build. No backend request is sent.</p>
-    }
+    <p class="intro">
+      {{ mode === 'login' ? 'Sign in to join or moderate a planning session.' : 'Create an account to take part in Planning Poker.' }}
+    </p>
+    <div class="tabs">
+      <a routerLink="/login" [class.active]="mode === 'login'">Sign in</a><a routerLink="/register" [class.active]="mode === 'register'">Register</a>
+    </div>
     <form [formGroup]="form" (ngSubmit)="submit()">
-      <label>Username<input type="text" formControlName="username" autocomplete="username">
-        @if (form.controls.username.invalid && (form.controls.username.touched || submitted)) { <span class="field-error">Enter a username.</span> }
+      <label
+        >Username<input type="text" formControlName="username" autocomplete="username" />
+        @if (form.controls.username.invalid && (form.controls.username.touched || submitted)) {
+          <span class="field-error">Enter a username.</span>
+        }
       </label>
-      <label>Password<input type="password" formControlName="password" autocomplete="current-password"><small>Password must contain at least 12 characters.</small>
-        @if (form.controls.password.invalid && (form.controls.password.touched || submitted)) { <span class="field-error">Enter a password with at least 12 characters.</span> }
+      <label
+        >Password<input type="password" formControlName="password" autocomplete="current-password" /><small
+          >Password must contain at least 12 characters.</small
+        >
+        @if (form.controls.password.invalid && (form.controls.password.touched || submitted)) {
+          <span class="field-error">Enter a password with at least 12 characters.</span>
+        }
       </label>
       @if (mode === 'register') {
-        <label>Role<select formControlName="role"><option value="DEVELOPER">Developer</option><option value="SCRUM_MASTER">Scrum Master</option></select></label>
+        <label
+          >Role<select formControlName="role">
+            <option value="DEVELOPER">Developer</option>
+            <option value="SCRUM_MASTER">Scrum Master</option>
+          </select></label
+        >
       }
-      @if (error) { <p class="error">{{ error }}</p> }
-      @if (message) { <p class="message">{{ message }}</p> }
-      <button class="submit" type="submit" [disabled]="loading">{{ loading ? 'Please wait…' : mode === 'login' ? 'Sign in' : 'Create account' }}</button>
+      @if (error) {
+        <p class="error">{{ error }}</p>
+      }
+      @if (message) {
+        <p class="message">{{ message }}</p>
+      }
+      <button class="submit" type="submit" [disabled]="loading">
+        {{ loading ? 'Please wait…' : mode === 'login' ? 'Sign in' : 'Create account' }}
+      </button>
     </form>
   </section>
 </main>

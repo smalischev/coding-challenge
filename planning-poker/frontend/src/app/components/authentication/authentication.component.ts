@@ -5,7 +5,6 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { finalize, Observable } from 'rxjs';
 import { AuthenticationService } from './authentication.service';
 import { ApiRole } from '../../core/api/planning-poker-api.models';
-import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-authentication',
@@ -16,7 +15,6 @@ import { environment } from '../../../environments/environment';
 })
 export class AuthenticationComponent {
   readonly auth = inject(AuthenticationService);
-  readonly environment = environment;
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   mode: 'login' | 'register' = this.route.snapshot.data['mode'] === 'register' ? 'register' : 'login';
@@ -35,11 +33,6 @@ export class AuthenticationComponent {
     this.submitted = false;
     this.message = '';
     this.error = '';
-  }
-
-  continueWithDemoSession(): void {
-    this.auth.startDemoSession();
-    this.router.navigate(['/poker']);
   }
 
   submit(): void {

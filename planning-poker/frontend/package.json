@@ -6,7 +6,9 @@
     "start": "ng serve --host 0.0.0.0",
     "build": "ng build",
     "test": "ng test --watch=false",
-    "test:backend-integration": "RUN_BACKEND_INTEGRATION=true ng test --watch=false"
+    "test:backend-integration": "RUN_BACKEND_INTEGRATION=true ng test --watch=false",
+    "test:e2e:registration": "playwright test",
+    "format": "prettier --write \"src/**/*.{html,css}\""
   },
   "dependencies": {
     "@angular/common": "^20.3.0",
@@ -24,7 +26,9 @@
     "@angular/build": "^20.3.0",
     "@angular/cli": "^20.3.11",
     "@angular/compiler-cli": "^20.3.0",
+    "@playwright/test": "^1.63.0",
     "jsdom": "^29.1.1",
+    "prettier": "3.9.9",
     "typescript": "~5.8.2",
     "vitest": "^3.2.7"
   }

@@ -33,6 +33,12 @@ export class PokerSessionStore {
     });
   }
 
+  markAllDevelopersEstimated(): void {
+    this.participants.update((participants) => participants.map((person) =>
+      person.role === 'Entwickler' ? { ...person, estimated: true } : person
+    ));
+  }
+
   selectCard(card: CardValue): void { this.estimates.update((estimates) => ({ ...estimates, [this.currentUser().name]: card })); this.participants.update((participants) => participants.map((person) => person.name === this.currentUser().name ? { ...person, estimated: true } : person)); }
   setRevealedEstimates(estimates: EstimatesByDeveloper): void { this.estimates.set(estimates); this.revealed.set(true); }
   startNewRound(): void { this.releasedIssue.set(null); this.revealed.set(false); this.estimates.set({}); this.participants.update((participants) => participants.map((person) => ({ ...person, estimated: false }))); }
