@@ -7,6 +7,15 @@
     <p class="preview">
       Vorschau: <strong>#{{ activeIssue.id }} · {{ activeIssue.title }}</strong>
     </p>
+    @if (canSelectIssue) {
+      <form class="selection" (submit)="$event.preventDefault(); selectIssue(issueIid.value)">
+        <label>
+          <span>Issue-IID wechseln</span>
+          <input #issueIid type="number" min="1" required placeholder="z. B. 42" />
+        </label>
+        <button type="submit">Issue auswählen</button>
+      </form>
+    }
     <button type="button" (click)="releaseRequested.emit()">
       {{ released ? 'Bereits freigegeben' : 'Für Schätzung freigeben' }}
     </button>

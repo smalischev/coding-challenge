@@ -38,6 +38,15 @@ select {
   font-size: 13px;
   padding: 9px;
 }
+input {
+  background: #fff;
+  border: 1px solid #cfd3e0;
+  border-radius: 6px;
+  color: #30364a;
+  font: inherit;
+  font-size: 13px;
+  padding: 9px;
+}
 button {
   background: #4f46e5;
   border: 1px solid #4f46e5;
@@ -58,9 +67,22 @@ button {
 .preview strong {
   color: #30364a;
 }
+.selection {
+  align-items: end;
+  display: flex;
+  gap: 8px;
+  grid-column: 1 / -1;
+}
+.selection label {
+  flex: 1;
+}
 @media (max-width: 760px) {
   .controls {
     align-items: stretch;
     grid-template-columns: 1fr;
+  }
+  .selection {
+    align-items: stretch;
+    flex-direction: column;
   }
 }

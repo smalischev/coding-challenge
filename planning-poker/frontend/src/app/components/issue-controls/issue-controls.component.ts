@@ -10,5 +10,14 @@ import { Issue } from '../../models';
 export class IssueControlsComponent {
   @Input({ required: true }) issue: Issue | null = null;
   @Input({ required: true }) released = false;
+  @Input({ required: true }) canSelectIssue = false;
   @Output() releaseRequested = new EventEmitter<void>();
+  @Output() issueSelected = new EventEmitter<number>();
+
+  selectIssue(issueIid: string): void {
+    const parsedIssueIid = Number(issueIid);
+    if (Number.isInteger(parsedIssueIid) && parsedIssueIid > 0) {
+      this.issueSelected.emit(parsedIssueIid);
+    }
+  }
 }

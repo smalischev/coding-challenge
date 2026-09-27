@@ -9,7 +9,13 @@
     ></app-session-setup>
   } @else {
     @if (store.currentUser().role === 'Scrum Master') {
-      <app-issue-controls [issue]="store.activeIssue()" [released]="store.releasedIssue() !== null" (releaseRequested)="releaseIssue()"></app-issue-controls>
+      <app-issue-controls
+        [issue]="store.activeIssue()"
+        [released]="store.releasedIssue() !== null"
+        [canSelectIssue]="store.releasedIssue() === null && !store.revealed()"
+        (releaseRequested)="releaseIssue()"
+        (issueSelected)="selectIssue($event)"
+      ></app-issue-controls>
     }
     @if (store.currentUser().role === 'Entwickler') {
       @if (store.releasedIssue(); as issue) {

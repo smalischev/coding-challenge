@@ -34,7 +34,7 @@
 
 - [x] **Issue-Auswahl und Freigabe durch den Scrum Master umsetzen**
 
-  Der Scrum Master sieht das beim Anlegen geladene aktive Issue und gibt es explizit zur Schätzrunde frei. Vor der Freigabe sehen Entwickler einen Wartehinweis. Das Laden und Freigeben sind mit den Backend-Endpunkten verbunden.
+  Der Scrum Master sieht das beim Anlegen geladene aktive Issue, kann vor dessen Freigabe über die IID ein anderes Issue auswählen und gibt es explizit zur Schätzrunde frei. Vor der Freigabe sehen Entwickler einen Wartehinweis. Auswahl, Laden und Freigeben sind mit den Backend-Endpunkten verbunden.
 
 
 - [x] **Abstimmungsfortschritt dynamisch anzeigen**

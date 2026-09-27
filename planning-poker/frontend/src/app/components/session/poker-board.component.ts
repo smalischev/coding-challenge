@@ -111,6 +111,22 @@ export class PokerBoardComponent {
     });
   }
 
+  selectIssue(issueIid: number): void {
+    this.error.set('');
+    this.issues.select(this.store.sessionId(), {
+      scrumMasterName: this.store.currentUser().name,
+      gitlabIssueIid: issueIid,
+    }).subscribe({
+      next: () => {
+        this.allEstimatedNotification.set(false);
+        this.store.startNewRound();
+        this.loadActiveIssue();
+        this.refreshProgress();
+      },
+      error: () => this.error.set('Das Issue konnte nicht ausgewählt werden.')
+    });
+  }
+
   submitEstimate(card: CardValue): void {
     this.estimations.submit(this.store.sessionId(), { developerName: this.store.currentUser().name, value: this.toBackendCard(card) }).subscribe({
       next: () => { this.store.selectCard(card); this.refreshProgress(); },
