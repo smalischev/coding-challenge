@@ -100,3 +100,19 @@ Du hast Zeit und dein Interesse ist geweckt? Dann kannst du gerne über zusätzl
 - Countdown-Timer je Schätzrunde mit automatischer Auflösung nach Ablauf
 - Hervorhebung von Ausreißern (z. B. farbliche Markierung bei großer Streuung)
 - Automatische Konsens-Erkennung mit visueller Bestätigung (z. B. Konfetti-Animation)
+
+## Betrieb mit Docker
+
+Das Frontend wird als eigenes, schlankes Nginx-Image ausgeliefert. Es wird
+zusammen mit dem Backend über dessen Compose-Datei gestartet:
+
+```bash
+cd ../backend
+docker compose up --build
+```
+
+Danach ist die Anwendung unter `http://localhost:4200` beziehungsweise unter
+`http://<server-ip>:4200` verfügbar. Nginx liefert die Angular-Anwendung aus
+und leitet Aufrufe an `/api/*` einschließlich der Server-Sent-Events intern an
+den Backend-Container weiter. Dadurch benötigt der Browser keine
+CORS-Freigabe und kennt keine interne Backend-Adresse.

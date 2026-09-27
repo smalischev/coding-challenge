@@ -10,6 +10,7 @@ import { CardValue } from '../../models';
 export class EstimationCardsComponent implements OnChanges {
   @Input() existingCard: CardValue | null = null;
   @Input() submitting = false;
+  @Input() revealed = false;
   @Input() resetSelectionToken = 0;
   @Output() cardSelected = new EventEmitter<CardValue>();
   readonly cards: CardValue[] = ['0', '1', '2', '3', '5', '8', '13', '21', '34', '?', '☕'];
@@ -22,7 +23,7 @@ export class EstimationCardsComponent implements OnChanges {
   }
 
   select(card: CardValue): void {
-    if (this.submitting) return;
+    if (this.submitting || this.revealed) return;
     this.selectedCard = card;
     this.cardSelected.emit(card);
   }

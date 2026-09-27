@@ -22,11 +22,7 @@
       }
     </div>
   }
-  @if (allEstimated) {
-    <p class="progress-complete">✓ Alle Entwickler haben geschätzt.</p>
-  } @else {
-    <p class="summary">
-      <strong>{{ estimatedCount }}</strong> von {{ developers.length }} Schätzungen eingegangen
-    </p>
-  }
+  <p class="summary">
+    <strong>{{ estimatedCount }}</strong> von {{ developers.length }} Schätzungen eingegangen
+  </p>
 </section>

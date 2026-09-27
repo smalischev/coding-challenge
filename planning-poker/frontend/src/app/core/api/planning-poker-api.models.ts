@@ -14,7 +14,14 @@ export interface EstimateRequest { developerName: string; value: BackendCardValu
 export interface FinalizeResultRequest { scrumMasterName: string; value: BackendCardValue; }
 export interface ActiveIssueResponse { gitlabIssueIid: number; title: string; description: string; }
 export interface DeveloperProgressResponse { name: string; joinedAt: string; estimated: boolean; }
-export interface EstimationProgressResponse { estimatedDevelopers: string[]; pendingDevelopers: string[]; developers: DeveloperProgressResponse[]; }
+export interface EstimationProgressResponse {
+  scrumMasterName: string;
+  estimatedDevelopers: string[];
+  pendingDevelopers: string[];
+  developers: DeveloperProgressResponse[];
+  released: boolean;
+  revealed: boolean;
+}
 export interface AllDevelopersEstimatedResponse { allDevelopersEstimated: boolean; }
 export interface EstimateValueResponse { developerName: string; value: BackendCardValue; }
 export interface NumericEstimationResponse { value: number | null; }

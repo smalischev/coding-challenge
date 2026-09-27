@@ -79,15 +79,13 @@ small {
   font-size: 11px;
   white-space: nowrap;
 }
-.state.complete,
-.progress-complete {
+.state.complete {
   color: #16865a;
 }
 .state.moderator {
   color: #6366f1;
 }
-.summary,
-.progress-complete {
+.summary {
   border-radius: 6px;
   font-size: 12px;
   margin: 14px 0 0;
@@ -99,8 +97,4 @@ small {
 }
 .summary strong {
   color: #4f46e5;
-}
-.progress-complete {
-  background: #ecfdf5;
-  font-weight: 650;
 }

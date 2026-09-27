@@ -18,7 +18,4 @@ export class ParticipantsComponent {
     return this.developers.filter((person) => person.estimated).length;
   }
 
-  get allEstimated(): boolean {
-    return this.developers.every((person) => person.estimated);
-  }
 }

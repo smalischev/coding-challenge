@@ -1,14 +1,28 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import { catchError, Observable, throwError } from 'rxjs';
 import { AllDevelopersEstimatedResponse, EstimateRequest, EstimationProgressResponse, PlanningPokerId, ScrumMasterRequest } from '../../core/api/planning-poker-api.models';
 import { PlanningPokerApiService } from '../../core/api/planning-poker-api.service';
+
+export class EstimationRoundRevealedError extends Error {
+  constructor() {
+    super('estimates cannot be changed after reveal');
+  }
+}
 
 @Injectable({ providedIn: 'root' })
 export class EstimationService {
   constructor(private readonly api: PlanningPokerApiService) {}
 
   submit(sessionId: PlanningPokerId, request: EstimateRequest): Observable<void> {
-    return this.api.post<void>(`${this.roundPath(sessionId)}/estimates`, request);
+    return this.api.post<void>(`${this.roundPath(sessionId)}/estimates`, request).pipe(
+      catchError((error: unknown) => {
+        if (error instanceof HttpErrorResponse && error.error?.message === 'estimates cannot be changed after reveal') {
+          return throwError(() => new EstimationRoundRevealedError());
+        }
+        return throwError(() => error);
+      }),
+    );
   }
 
   getProgress(sessionId: PlanningPokerId): Observable<EstimationProgressResponse> {

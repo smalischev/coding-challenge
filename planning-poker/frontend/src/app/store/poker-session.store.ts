@@ -23,9 +23,23 @@ export class PokerSessionStore {
   setActiveIssue(issue: Issue): void { this.activeIssue.set(issue); }
   releaseIssue(issue: Issue): void { this.activeIssue.set(issue); this.releasedIssue.set(issue); }
 
-  setProgress(developerProgress: ReadonlyArray<Pick<Participant, 'name' | 'joinedAt' | 'estimated'>>): void {
+  resetSession(): void {
+    this.sessionId.set('');
+    this.activeIssue.set(null);
+    this.releasedIssue.set(null);
+    this.estimates.set({});
+    this.revealed.set(false);
+    this.participants.set([]);
+  }
+
+  setProgress(
+    developerProgress: ReadonlyArray<Pick<Participant, 'name' | 'joinedAt' | 'estimated'>>,
+    scrumMasterName: string,
+  ): void {
     this.participants.update((participants) => {
-      const scrumMasters = participants.filter((person) => person.role === 'Scrum Master');
+      const scrumMasters: Participant[] = scrumMasterName
+        ? [{ name: scrumMasterName, role: 'Scrum Master', estimated: false, joinedAt: '' }]
+        : participants.filter((person) => person.role === 'Scrum Master');
       const developers = developerProgress
         .map((developer) => ({ ...developer, role: 'Entwickler' as const }))
         .sort((first, second) => first.joinedAt.localeCompare(second.joinedAt) || first.name.localeCompare(second.name));
@@ -47,6 +61,7 @@ export class PokerSessionStore {
     this.estimates.set(estimates);
     this.revealed.set(true); 
   }
+  markRevealed(): void { this.revealed.set(true); }
   startNewRound(): void {
     this.releasedIssue.set(null);
     this.revealed.set(false);

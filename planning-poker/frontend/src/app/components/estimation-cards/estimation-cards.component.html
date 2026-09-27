@@ -2,9 +2,11 @@
   <div class="heading">
     <div>
       <h2>Deine Schätzung</h2>
-      <p>Wähle eine Karte. Deine Auswahl bleibt verdeckt.</p>
+      <p>{{ revealed ? 'Die Runde wurde aufgedeckt. Eine weitere Auswahl ist nicht möglich.' : 'Wähle eine Karte. Deine Auswahl bleibt verdeckt.' }}</p>
     </div>
-    @if (submitting) {
+    @if (revealed) {
+      <span class="revealed">Runde aufgedeckt</span>
+    } @else if (submitting) {
       <span class="saving">Wird gespeichert …</span>
     } @else if (selectedCard) {
       <span class="chosen">Ausgewählt</span>
@@ -12,7 +14,13 @@
   </div>
   <div class="cards">
     @for (card of cards; track card) {
-      <button type="button" [class.selected]="card === selectedCard" [disabled]="submitting" (click)="select(card)" [attr.aria-pressed]="card === selectedCard">
+      <button
+        type="button"
+        [class.selected]="card === selectedCard"
+        [disabled]="submitting || revealed"
+        (click)="select(card)"
+        [attr.aria-pressed]="card === selectedCard"
+      >
         {{ card }}
       </button>
     }

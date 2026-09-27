@@ -1,5 +1,6 @@
 import { Component, effect, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
+import { forkJoin } from 'rxjs';
 import { AuthenticationService } from '../authentication/authentication.service';
 import { EstimationCardsComponent } from '../estimation-cards/estimation-cards.component';
 import { HeaderComponent } from '../header/header.component';
@@ -15,9 +16,9 @@ import { SessionSetupComponent, CreateSessionInput } from './session-setup.compo
 import { SessionService } from './session.service';
 import { SessionEventsService } from './session-events.service';
 import { IssueService } from '../issue/issue.service';
-import { EstimationService } from '../estimation-cards/estimation.service';
+import { EstimationRoundRevealedError, EstimationService } from '../estimation-cards/estimation.service';
 import { ResultsService } from '../results/results.service';
-import { BackendCardValue } from '../../core/api/planning-poker-api.models';
+import { BackendCardValue, EstimationProgressResponse } from '../../core/api/planning-poker-api.models';
 import { CardValue, Issue } from '../../models';
 
 @Component({
@@ -42,12 +43,14 @@ export class PokerBoardComponent {
   private readonly issues = inject(IssueService);
   private readonly estimations = inject(EstimationService);
   private readonly results = inject(ResultsService);
+
   private readonly synchronizeAuthenticatedUser = effect(() => {
     const user = this.authentication.user();
     if (user) {
       this.store.setAuthenticatedUser(user.username, user.role === 'SCRUM_MASTER' ? 'Scrum Master' : 'Entwickler');
     }
   });
+
   private readonly synchronizeSessionEvents = effect((onCleanup) => {
     const sessionId = this.store.sessionId();
     if (!sessionId) return;
@@ -68,7 +71,7 @@ export class PokerBoardComponent {
   createSession(input: CreateSessionInput): void {
     this.error.set('');
     this.sessions.create({ scrumMasterName: this.store.currentUser().name, ...input }).subscribe({
-      next: ({ planningPokerId }) => { this.store.setSession(planningPokerId); this.loadActiveIssue(); },
+      next: ({ planningPokerId }) => { this.store.setSession(planningPokerId); this.loadSessionState(); },
       error: () => this.error.set('Die Sitzung konnte nicht erstellt werden. Prüfe GitLab-Projekt, Issue und Backend-Konfiguration.')
     });
   }
@@ -76,7 +79,7 @@ export class PokerBoardComponent {
   joinSession(sessionId: string): void {
     this.error.set('');
     this.sessions.join(sessionId, { developerName: this.store.currentUser().name }).subscribe({
-      next: () => { this.store.setSession(sessionId); this.loadActiveIssue(); this.refreshProgress(); },
+      next: () => { this.store.setSession(sessionId); this.loadSessionState(); },
       error: () => this.error.set('Der Beitritt zur Sitzung ist fehlgeschlagen. Prüfe die Session-ID.')
     });
   }
@@ -99,15 +102,14 @@ export class PokerBoardComponent {
       next: () => {
         this.allEstimatedNotification.set(false);
         this.store.startNewRound();
-        this.loadActiveIssue();
-        this.refreshProgress();
+        this.loadSessionState();
       },
       error: () => this.error.set('Das Issue konnte nicht ausgewählt werden.')
     });
   }
 
   submitEstimate(card: CardValue): void {
-    if (this.estimateSubmitting()) return;
+    if (this.estimateSubmitting() || this.store.revealed()) return;
     this.estimateSubmitting.set(true);
     this.estimations.submit(this.store.sessionId(), { developerName: this.store.currentUser().name, value: this.toBackendCard(card) }).subscribe({
       next: () => {
@@ -115,9 +117,15 @@ export class PokerBoardComponent {
         this.estimateSubmitting.set(false);
         this.refreshProgress();
       },
-      error: () => {
+      error: (error: unknown) => {
         this.estimateSubmitting.set(false);
         this.estimateResetToken.update((token) => token + 1);
+        if (error instanceof EstimationRoundRevealedError) {
+          this.store.markRevealed();
+          this.loadRevealedEstimates();
+          this.error.set('Die Runde wurde inzwischen aufgedeckt. Die Kartenauswahl ist gesperrt.');
+          return;
+        }
         this.error.set('Die Schätzung konnte nicht gespeichert werden.');
       }
     });
@@ -141,20 +149,59 @@ export class PokerBoardComponent {
     });
   }
 
-  private loadActiveIssue(): void { this.issues.getActive(this.store.sessionId()).subscribe({ next: (issue) => this.store.setActiveIssue(this.toIssue(issue)), error: () => this.error.set('Das aktive Issue konnte nicht geladen werden.') }); }
-  private refreshProgress(): void { this.estimations.getProgress(this.store.sessionId()).subscribe({ next: (progress) => this.store.setProgress(progress.developers) }); }
-  private applySessionEvent(name: string, data: unknown): void {
-    if (name === 'estimation-progress') this.store.setProgress((data as { developers: [] }).developers);
-    if (name === 'issue-released') this.store.releaseIssue(this.toIssue(data as { gitlabIssueIid: number; title: string; description: string }));
-    if (name === 'all-developers-estimated') { this.allEstimatedNotification.set(true); this.store.markAllDevelopersEstimated(); }
-    if (name === 'round-revealed') this.store.setRevealedEstimates(Object.fromEntries((data as { developerName: string; value: BackendCardValue }[]).map((estimate) => [estimate.developerName, this.fromBackendCard(estimate.value)])));
-    if (name === 'round-started') { this.allEstimatedNotification.set(false); this.store.startNewRound(); this.loadActiveIssue(); }
+  private loadSessionState(): void {
+    const sessionId = this.store.sessionId();
+    forkJoin({
+      issue: this.issues.getActive(sessionId),
+      progress: this.estimations.getProgress(sessionId),
+    }).subscribe({
+      next: ({ issue, progress }) => {
+        const activeIssue = this.toIssue(issue);
+        this.store.setActiveIssue(activeIssue);
+        this.store.setProgress(progress.developers, progress.scrumMasterName);
+        if (progress.released) {
+          this.store.releaseIssue(activeIssue);
+        }
+        if (progress.revealed) {
+          this.store.markRevealed();
+          this.loadRevealedEstimates();
+        }
+      },
+      error: () => this.error.set('Der Zustand der Sitzung konnte nicht geladen werden.'),
+    });
   }
+  
+  private refreshProgress(): void {
+    this.estimations.getProgress(this.store.sessionId()).subscribe({ next: (progress) => this.store.setProgress(progress.developers, progress.scrumMasterName) });
+  }
+
+  private applySessionEvent(name: string, data: unknown): void {
+    if (name === 'estimation-progress') {
+      const progress = data as Pick<EstimationProgressResponse, 'developers' | 'scrumMasterName'>;
+      this.store.setProgress(progress.developers, progress.scrumMasterName);
+    }
+    if (name === 'issue-released') this.store.releaseIssue(this.toIssue(data as { gitlabIssueIid: number; title: string; description: string }));
+    if (name === 'all-developers-estimated') {
+      this.allEstimatedNotification.set(true);
+      this.store.markAllDevelopersEstimated();
+    }
+    if (name === 'round-revealed') this.store.setRevealedEstimates(Object.fromEntries((data as { developerName: string; value: BackendCardValue }[])
+                                                                         .map((estimate) => [estimate.developerName, this.fromBackendCard(estimate.value)])
+        )
+    );  
+    if (name === 'round-started') { 
+      this.allEstimatedNotification.set(false);
+      this.store.startNewRound();
+      this.loadSessionState();
+    }
+  }
+
   private loadRevealedEstimates(): void {
     this.results.getEstimates(this.store.sessionId()).subscribe((estimates) => this.store.setRevealedEstimates(
       Object.fromEntries(estimates.map((estimate) => [estimate.developerName, this.fromBackendCard(estimate.value)]))
     ));
   }
+
   private toIssue(issue: { gitlabIssueIid: number; title: string; description: string }): Issue { 
     return { 
       id: issue.gitlabIssueIid,
@@ -162,6 +209,7 @@ export class PokerBoardComponent {
       description: issue.description
     };
   }
+
   private toBackendCard(card: CardValue): BackendCardValue { 
     return ({ 
       '0': 'ZERO',
@@ -177,5 +225,20 @@ export class PokerBoardComponent {
       '☕': 'COFFEE'
     } as const)[card];
   }
-  private fromBackendCard(card: BackendCardValue): CardValue { return ({ ZERO: '0', ONE: '1', TWO: '2', THREE: '3', FIVE: '5', EIGHT: '8', THIRTEEN: '13', TWENTY_ONE: '21', THIRTY_FOUR: '34', QUESTION_MARK: '?', COFFEE: '☕' } as const)[card]; }
+
+  private fromBackendCard(card: BackendCardValue): CardValue { 
+    return ({ 
+      ZERO: '0',
+      ONE: '1',
+      TWO: '2',
+      THREE: '3',
+      FIVE: '5',
+      EIGHT: '8',
+      THIRTEEN: '13',
+      TWENTY_ONE: '21',
+      THIRTY_FOUR: '34',
+      QUESTION_MARK: '?',
+      COFFEE: '☕'
+    } as const)[card];
+  }
 }

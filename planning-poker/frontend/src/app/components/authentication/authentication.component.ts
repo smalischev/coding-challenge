@@ -5,6 +5,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { finalize, Observable } from 'rxjs';
 import { AuthenticationService } from './authentication.service';
 import { ApiRole } from '../../core/api/planning-poker-api.models';
+import { PokerSessionStore } from '../../store/poker-session.store';
 
 @Component({
   selector: 'app-authentication',
@@ -17,6 +18,7 @@ export class AuthenticationComponent {
   readonly auth = inject(AuthenticationService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  private readonly pokerSessionStore = inject(PokerSessionStore);
   mode: 'login' | 'register' = this.route.snapshot.data['mode'] === 'register' ? 'register' : 'login';
   loading = false;
   submitted = false;
@@ -53,6 +55,7 @@ export class AuthenticationComponent {
           this.message = 'Account created. You can now sign in.';
           this.router.navigate(['/login']);
         } else {
+          this.pokerSessionStore.resetSession();
           this.router.navigate(['/poker']);
         }
       },
