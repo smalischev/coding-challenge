@@ -1,6 +1,6 @@
 import { provideHttpClient, withFetch, withInterceptors } from '@angular/common/http';
 import { TestBed } from '@angular/core/testing';
-import { firstValueFrom } from 'rxjs';
+import { filter, firstValueFrom } from 'rxjs';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { AuthenticationService } from '../authentication/authentication.service';
 import { IssueService } from '../issue/issue.service';
@@ -8,6 +8,7 @@ import { SessionService } from '../session/session.service';
 import { authInterceptor } from '../../core/auth/auth.interceptor';
 import { AuthTokenService } from '../../core/auth/auth-token.service';
 import { EstimationService } from './estimation.service';
+import { SessionEventsService } from '../session/session-events.service';
 
 const processEnvironment =
   (globalThis as typeof globalThis & {
@@ -25,6 +26,7 @@ describeIntegration('EstimationService backend integration', () => {
   let sessions: SessionService;
   let issues: IssueService;
   let estimations: EstimationService;
+  let sessionEvents: SessionEventsService;
 
   beforeAll(() => {
     // JSDOM replaces AbortController; the Microsoft SSE client needs Node's native variant for fetch.
@@ -48,6 +50,7 @@ describeIntegration('EstimationService backend integration', () => {
     sessions = TestBed.inject(SessionService);
     issues = TestBed.inject(IssueService);
     estimations = TestBed.inject(EstimationService);
+    sessionEvents = TestBed.inject(SessionEventsService);
   });
 
   it(
@@ -71,14 +74,16 @@ describeIntegration('EstimationService backend integration', () => {
       authToken.set(scrumMaster.token);
       await firstValueFrom(issues.release(session.planningPokerId, { scrumMasterName: scrumMaster.username }));
 
-      const completion = firstValueFrom(estimations.watchAllDevelopersEstimated(session.planningPokerId));
+      const completion = firstValueFrom(sessionEvents.watch(session.planningPokerId).pipe(
+        filter((event) => event.name === 'all-developers-estimated')
+      ));
       await waitForConnection();
       authToken.set(developerOne.token);
       await firstValueFrom(estimations.submit(session.planningPokerId, { developerName: developerOne.username, value: 'FIVE' }));
       authToken.set(developerTwo.token);
       await firstValueFrom(estimations.submit(session.planningPokerId, { developerName: developerTwo.username, value: 'FIVE' }));
 
-      await expect(completion).resolves.toBeUndefined();
+      await expect(completion).resolves.toEqual({ name: 'all-developers-estimated', data: { allDevelopersEstimated: true } });
     },
     10_000,
   );

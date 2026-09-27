@@ -13,6 +13,7 @@ import { WaitingForReleaseComponent } from '../waiting-for-release/waiting-for-r
 import { PokerSessionStore } from '../../store/poker-session.store';
 import { SessionSetupComponent, CreateSessionInput } from './session-setup.component';
 import { SessionService } from './session.service';
+import { SessionEventsService } from './session-events.service';
 import { IssueService } from '../issue/issue.service';
 import { EstimationService } from '../estimation-cards/estimation.service';
 import { ResultsService } from '../results/results.service';
@@ -37,6 +38,7 @@ export class PokerBoardComponent {
   private readonly authentication = inject(AuthenticationService);
   private readonly router = inject(Router);
   private readonly sessions = inject(SessionService);
+  private readonly sessionEvents = inject(SessionEventsService);
   private readonly issues = inject(IssueService);
   private readonly estimations = inject(EstimationService);
   private readonly results = inject(ResultsService);
@@ -46,58 +48,14 @@ export class PokerBoardComponent {
       this.store.setAuthenticatedUser(user.username, user.role === 'SCRUM_MASTER' ? 'Scrum Master' : 'Entwickler');
     }
   });
-  private readonly watchEstimationCompletion = effect((onCleanup) => {
-    const sessionId = this.store.sessionId();
-    if (!sessionId || this.store.currentUser().role !== 'Scrum Master' || !this.store.releasedIssue() || this.store.revealed()) return;
-    const subscription = this.estimations.watchAllDevelopersEstimated(sessionId).subscribe({
-      next: () => { this.allEstimatedNotification.set(true); this.store.markAllDevelopersEstimated(); },
-      error: () => this.error.set('Die Echtzeit-Benachrichtigung konnte nicht verbunden werden.')
-    });
-    onCleanup(() => subscription.unsubscribe());
-  });
-  private readonly pollEstimationProgress = effect((onCleanup) => {
+  private readonly synchronizeSessionEvents = effect((onCleanup) => {
     const sessionId = this.store.sessionId();
     if (!sessionId) return;
-
-    this.refreshProgress();
-    const pollingId = window.setInterval(() => this.refreshProgress(), 500);
-    onCleanup(() => window.clearInterval(pollingId));
-  });
-  private readonly watchIssueReleaseForDeveloper = effect((onCleanup) => {
-    const sessionId = this.store.sessionId();
-    const issue = this.store.activeIssue();
-    if (!sessionId || !issue || this.store.currentUser().role !== 'Entwickler' || this.store.releasedIssue()) return;
-
-    const checkRelease = () => this.estimations.areAllDevelopersEstimated(sessionId).subscribe({
-      next: () => {
-        this.store.releaseIssue(issue);
-        this.refreshProgress();
-      },
+    const subscription = this.sessionEvents.watch(sessionId).subscribe({
+      next: (event) => this.applySessionEvent(event.name, event.data),
+      error: () => this.error.set('Die Echtzeit-Synchronisation konnte nicht verbunden werden.')
     });
-    checkRelease();
-    const pollingId = window.setInterval(checkRelease, 1_000);
-    onCleanup(() => window.clearInterval(pollingId));
-  });
-  private readonly synchronizeRevealedRoundForDeveloper = effect((onCleanup) => {
-    const sessionId = this.store.sessionId();
-    if (!sessionId || this.store.currentUser().role !== 'Entwickler') return;
-
-    const synchronize = () => this.results.getEstimates(sessionId).subscribe({
-      next: (estimates) => this.store.setRevealedEstimates(
-        Object.fromEntries(estimates.map((estimate) => [estimate.developerName, this.fromBackendCard(estimate.value)]))
-      ),
-      error: () => {
-        if (this.store.revealed()) {
-          this.store.startNewRound();
-          this.loadActiveIssue();
-          this.refreshProgress();
-        }
-      }
-    });
-
-    synchronize();
-    const pollingId = window.setInterval(synchronize, 500);
-    onCleanup(() => window.clearInterval(pollingId));
+    onCleanup(() => subscription.unsubscribe());
   });
 
   logout(): void {
@@ -185,12 +143,39 @@ export class PokerBoardComponent {
 
   private loadActiveIssue(): void { this.issues.getActive(this.store.sessionId()).subscribe({ next: (issue) => this.store.setActiveIssue(this.toIssue(issue)), error: () => this.error.set('Das aktive Issue konnte nicht geladen werden.') }); }
   private refreshProgress(): void { this.estimations.getProgress(this.store.sessionId()).subscribe({ next: (progress) => this.store.setProgress(progress.developers) }); }
+  private applySessionEvent(name: string, data: unknown): void {
+    if (name === 'estimation-progress') this.store.setProgress((data as { developers: [] }).developers);
+    if (name === 'issue-released') this.store.releaseIssue(this.toIssue(data as { gitlabIssueIid: number; title: string; description: string }));
+    if (name === 'all-developers-estimated') { this.allEstimatedNotification.set(true); this.store.markAllDevelopersEstimated(); }
+    if (name === 'round-revealed') this.store.setRevealedEstimates(Object.fromEntries((data as { developerName: string; value: BackendCardValue }[]).map((estimate) => [estimate.developerName, this.fromBackendCard(estimate.value)])));
+    if (name === 'round-started') { this.allEstimatedNotification.set(false); this.store.startNewRound(); this.loadActiveIssue(); }
+  }
   private loadRevealedEstimates(): void {
     this.results.getEstimates(this.store.sessionId()).subscribe((estimates) => this.store.setRevealedEstimates(
       Object.fromEntries(estimates.map((estimate) => [estimate.developerName, this.fromBackendCard(estimate.value)]))
     ));
   }
-  private toIssue(issue: { gitlabIssueIid: number; title: string; description: string }): Issue { return { id: issue.gitlabIssueIid, title: issue.title, description: issue.description }; }
-  private toBackendCard(card: CardValue): BackendCardValue { return ({ '0': 'ZERO', '1': 'ONE', '2': 'TWO', '3': 'THREE', '5': 'FIVE', '8': 'EIGHT', '13': 'THIRTEEN', '21': 'TWENTY_ONE', '34': 'THIRTY_FOUR', '?': 'QUESTION_MARK', '☕': 'COFFEE' } as const)[card]; }
+  private toIssue(issue: { gitlabIssueIid: number; title: string; description: string }): Issue { 
+    return { 
+      id: issue.gitlabIssueIid,
+      title: issue.title,
+      description: issue.description
+    };
+  }
+  private toBackendCard(card: CardValue): BackendCardValue { 
+    return ({ 
+      '0': 'ZERO',
+      '1': 'ONE',
+      '2': 'TWO',
+      '3': 'THREE',
+      '5': 'FIVE',
+      '8': 'EIGHT',
+      '13': 'THIRTEEN',
+      '21': 'TWENTY_ONE',
+      '34': 'THIRTY_FOUR',
+      '?': 'QUESTION_MARK',
+      '☕': 'COFFEE'
+    } as const)[card];
+  }
   private fromBackendCard(card: BackendCardValue): CardValue { return ({ ZERO: '0', ONE: '1', TWO: '2', THREE: '3', FIVE: '5', EIGHT: '8', THIRTEEN: '13', TWENTY_ONE: '21', THIRTY_FOUR: '34', QUESTION_MARK: '?', COFFEE: '☕' } as const)[card]; }
 }

@@ -3,12 +3,12 @@ import { TestBed } from '@angular/core/testing';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { environment } from '../../../environments/environment';
 import { AuthTokenService } from '../../core/auth/auth-token.service';
-import { EstimationService, FETCH_EVENT_SOURCE, PLANNING_POKER_API_BASE_URL } from './estimation.service';
+import { FETCH_EVENT_SOURCE, PLANNING_POKER_API_BASE_URL, SessionEventsService } from '../session/session-events.service';
 
 const fetchEventSourceMock = vi.fn();
 
-describe('EstimationService', () => {
-  let service: EstimationService;
+describe('SessionEventsService', () => {
+  let service: SessionEventsService;
   let authToken: AuthTokenService;
 
   beforeEach(() => {
@@ -19,11 +19,11 @@ describe('EstimationService', () => {
     TestBed.overrideProvider(FETCH_EVENT_SOURCE, { useValue: fetchEventSourceMock });
     TestBed.overrideProvider(PLANNING_POKER_API_BASE_URL, { useValue: environment.apiBaseUrl });
 
-    service = TestBed.inject(EstimationService);
+    service = TestBed.inject(SessionEventsService);
     authToken = TestBed.inject(AuthTokenService);
   });
 
-  it('notifies the scrum master when the completion SSE event arrives', () => {
+  it('emits the completion SSE event with its payload', () => {
     authToken.set('test-jwt');
     fetchEventSourceMock.mockImplementation((_url, options) => {
       options.onmessage({ event: 'all-developers-estimated', data: '{}' });
@@ -31,15 +31,15 @@ describe('EstimationService', () => {
     });
     const notification = vi.fn();
 
-    const subscription = service.watchAllDevelopersEstimated('session-id').subscribe(notification);
+    const subscription = service.watch('session-id').subscribe(notification);
 
     expect(fetchEventSourceMock).toHaveBeenCalledWith(
-      environment.apiBaseUrl + '/planning-pokers/session-id/active-round/events',
+      environment.apiBaseUrl + '/planning-pokers/session-id/events',
       expect.objectContaining({
         headers: { Authorization: 'Bearer test-jwt' },
       }),
     );
-    expect(notification).toHaveBeenCalledOnce();
+    expect(notification).toHaveBeenCalledWith({ name: 'all-developers-estimated', data: {} });
 
     subscription.unsubscribe();
   });
