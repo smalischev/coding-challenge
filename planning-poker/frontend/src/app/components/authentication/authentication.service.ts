@@ -63,7 +63,8 @@ export class AuthenticationService {
     sessionStorage.setItem(this.storageKey, JSON.stringify(session));
   }
 
-  private clearSession(): void {
+  /** Removes locally stored credentials without calling the backend. */
+  clearSession(): void {
     this.token.set(null);
     this.user.set(null);
     sessionStorage.removeItem(this.storageKey);

@@ -7,8 +7,18 @@
       ><button type="button" class="logout" (click)="logout.emit()">Sign out</button>
     </div>
     <div class="session">
-      Session <strong>{{ sessionId }}</strong
-      ><button type="button" aria-label="Session-Link kopieren">⧉</button>
+      Session <strong>{{ sessionId }}</strong>
+      <button
+        type="button"
+        class="copy-session-id"
+        [attr.aria-label]="sessionIdCopied() ? 'Session-ID kopiert' : 'Session-ID kopieren'"
+        (click)="copySessionId()"
+      >
+        {{ sessionIdCopied() ? '✓' : '⧉' }}
+      </button>
+      @if (sessionIdCopied()) {
+        <span class="copy-confirmation">Kopiert</span>
+      }
     </div>
   </div>
 </header>
