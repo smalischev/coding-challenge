@@ -1,0 +1,27 @@
+@if (rounds().length > 0) {
+  <section class="history">
+    <div class="heading">
+      <div>
+        <p class="eyebrow">Sitzung</p>
+        <h2>Sitzungsprotokoll</h2>
+      </div>
+      <span>{{ rounds().length }} {{ rounds().length === 1 ? 'Runde' : 'Runden' }}</span>
+    </div>
+    <div class="rounds">
+      @for (round of rounds(); track round.roundNumber) {
+        <article class="round">
+          <div class="round-heading">
+            <strong>Runde {{ round.roundNumber }}</strong>
+            <time [attr.datetime]="round.completedAt">{{ round.completedAt | date: 'dd.MM.yyyy, HH:mm' }}</time>
+          </div>
+          <p>Issue #{{ round.gitlabIssueIid }} · {{ round.issueTitle }}</p>
+          <div class="estimates">
+            @for (estimate of round.estimates; track estimate.developerName) {
+              <span>{{ estimate.developerName }}: <b>{{ estimate.value }}</b></span>
+            }
+          </div>
+        </article>
+      }
+    </div>
+  </section>
+}

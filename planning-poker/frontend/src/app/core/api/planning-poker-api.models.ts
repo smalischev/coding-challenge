@@ -24,4 +24,11 @@ export interface EstimationProgressResponse {
 }
 export interface AllDevelopersEstimatedResponse { allDevelopersEstimated: boolean; }
 export interface EstimateValueResponse { developerName: string; value: BackendCardValue; }
+export interface CompletedRoundResponse {
+  roundNumber: number;
+  gitlabIssueIid: number;
+  issueTitle: string;
+  completedAt: string;
+  estimates: EstimateValueResponse[];
+}
 export interface NumericEstimationResponse { value: number | null; }

@@ -11,6 +11,7 @@ import { ParticipantsComponent } from '../participants/participants.component';
 import { ResultsComponent } from '../results/results.component';
 import { ScrumMasterNoticeComponent } from '../scrum-master-notice/scrum-master-notice.component';
 import { WaitingForReleaseComponent } from '../waiting-for-release/waiting-for-release.component';
+import { SessionHistoryComponent } from '../session-history/session-history.component';
 import { PokerSessionStore } from '../../store/poker-session.store';
 import { SessionSetupComponent, CreateSessionInput } from './session-setup.component';
 import { SessionService } from './session.service';
@@ -24,7 +25,7 @@ import { CardValue, Issue } from '../../models';
 @Component({
   selector: 'app-poker-board',
   standalone: true,
-  imports: [HeaderComponent, SessionSetupComponent, IssueComponent, ParticipantsComponent, EstimationCardsComponent, ModeratorControlsComponent, ResultsComponent, ScrumMasterNoticeComponent, IssueControlsComponent, WaitingForReleaseComponent],
+  imports: [HeaderComponent, SessionSetupComponent, IssueComponent, ParticipantsComponent, EstimationCardsComponent, ModeratorControlsComponent, ResultsComponent, ScrumMasterNoticeComponent, IssueControlsComponent, WaitingForReleaseComponent, SessionHistoryComponent],
   templateUrl: './poker-board.component.html',
   styleUrl: './poker-board.component.css'
 })
@@ -138,7 +139,7 @@ export class PokerBoardComponent {
     });
   }
 
-  startNewRound(): void { this.estimations.startNewRound(this.store.sessionId(), { scrumMasterName: this.store.currentUser().name }).subscribe({ next: () => { this.allEstimatedNotification.set(false); this.store.startNewRound(); }, error: () => this.error.set('Die neue Runde konnte nicht gestartet werden.') }); }
+  startNewRound(): void { this.estimations.startNewRound(this.store.sessionId(), { scrumMasterName: this.store.currentUser().name }).subscribe({ next: () => { this.allEstimatedNotification.set(false); this.store.startNewRound(); this.store.refreshCompletedRounds(); }, error: () => this.error.set('Die neue Runde konnte nicht gestartet werden.') }); }
 
   finalizeResult(card: CardValue): void {
     this.finalizingResult.set(true);
@@ -192,6 +193,7 @@ export class PokerBoardComponent {
     if (name === 'round-started') { 
       this.allEstimatedNotification.set(false);
       this.store.startNewRound();
+      this.store.refreshCompletedRounds();
       this.loadSessionState();
     }
   }

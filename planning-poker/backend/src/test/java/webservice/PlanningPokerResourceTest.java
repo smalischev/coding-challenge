@@ -142,6 +142,14 @@ class PlanningPokerResourceTest {
         as(scrumMasterToken).contentType(JSON).body(Map.of("scrumMasterName", scrumMasterName))
                 .when().post("/planning-pokers/{id}/active-round", planningPokerId)
                 .then().statusCode(204);
+
+        as(alexToken).when().get("/planning-pokers/{id}/completed-rounds", planningPokerId)
+                .then().statusCode(200)
+                .body("size()", equalTo(1))
+                .body("[0].roundNumber", equalTo(1))
+                .body("[0].gitlabIssueIid", equalTo(42))
+                .body("[0].issueTitle", equalTo("Issue 42"))
+                .body("[0].estimates.developerName", containsInAnyOrder(alexName, kimName));
     }
 
     @Test

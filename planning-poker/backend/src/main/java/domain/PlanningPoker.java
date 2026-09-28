@@ -20,12 +20,14 @@ public class PlanningPoker {
     private final List<Developer> developers;
     private final Map<Developer, Instant> developerJoinedAt;
     private final ScrumMaster owner;
+    private final List<CompletedRound> completedRounds;
 
     public PlanningPoker(ScrumMaster owner, long gitlabProjektID, Issue issue) {
         this.id = UUID.randomUUID();
         this.owner = owner;
         this.developers = new ArrayList<>();
         this.developerJoinedAt = new LinkedHashMap<>();
+        this.completedRounds = new ArrayList<>();
         this.issues = new ArrayList<>();
         this.session = new Session();
         this.gitlabProjektID = gitlabProjektID;
@@ -72,6 +74,7 @@ public class PlanningPoker {
             throw new IllegalStateException("current estimation round has not been revealed yet");
         }
 
+        completedRounds.add(createCompletedRound());
         this.currentRound = new EstimationRound(activeIssue);
     }
 
@@ -219,6 +222,27 @@ public class PlanningPoker {
         }
 
         return currentRound.findMostFrequentValue();
+    }
+
+    public List<CompletedRound> getCompletedRounds() {
+        return List.copyOf(completedRounds);
+    }
+
+    private CompletedRound createCompletedRound() {
+        Map<String, CardValue> estimates = currentRound.getEstimateValues().entrySet().stream()
+                .collect(java.util.stream.Collectors.toMap(
+                        entry -> entry.getKey().getName(),
+                        Map.Entry::getValue,
+                        (first, ignored) -> first,
+                        LinkedHashMap::new
+                ));
+        return new CompletedRound(
+                completedRounds.size() + 1,
+                activeIssue.getGitlabIssueIid(),
+                activeIssue.getTitle(),
+                Instant.now(),
+                estimates
+        );
     }
 
     private void ensureSessionOwner(Member member) {

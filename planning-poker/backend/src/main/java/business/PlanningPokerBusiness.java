@@ -7,6 +7,7 @@ import jakarta.enterprise.event.Event;
 import jakarta.inject.Inject;
 
 import java.util.Map;
+import java.util.List;
 import java.util.OptionalInt;
 import java.util.Set;
 import java.util.UUID;
@@ -136,6 +137,10 @@ public class PlanningPokerBusiness {
 
     public OptionalInt findMostFrequentValue(UUID planningPokerId) {
         return getPlanningPoker(planningPokerId).findMostFrequentValue();
+    }
+
+    public List<CompletedRound> getCompletedRounds(UUID planningPokerId) {
+        return getPlanningPoker(planningPokerId).getCompletedRounds();
     }
 
     public void finalizeResult(UUID planningPokerId, ScrumMaster scrumMaster, CardValue value) {

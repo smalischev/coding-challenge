@@ -59,5 +59,9 @@
         }
       </div>
     </div>
+    <app-session-history
+      [sessionId]="store.sessionId()"
+      [refreshVersion]="store.completedRoundsVersion()"
+    ></app-session-history>
   }
 </main>

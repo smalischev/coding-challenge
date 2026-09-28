@@ -13,6 +13,7 @@ export class PokerSessionStore {
   readonly estimates: WritableSignal<EstimatesByDeveloper> = signal({});
   readonly revealed: WritableSignal<boolean> = signal(false);
   readonly participants: WritableSignal<Participant[]> = signal([]);
+  readonly completedRoundsVersion: WritableSignal<number> = signal(0);
   readonly allEstimated: Signal<boolean> = computed(() => {
     const developers = this.participants().filter((person) => person.role === 'Entwickler');
     return developers.length > 0 && developers.every((person) => person.estimated);
@@ -30,6 +31,7 @@ export class PokerSessionStore {
     this.estimates.set({});
     this.revealed.set(false);
     this.participants.set([]);
+    this.completedRoundsVersion.set(0);
   }
 
   setProgress(
@@ -62,6 +64,7 @@ export class PokerSessionStore {
     this.revealed.set(true); 
   }
   markRevealed(): void { this.revealed.set(true); }
+  refreshCompletedRounds(): void { this.completedRoundsVersion.update((version) => version + 1); }
   startNewRound(): void {
     this.releasedIssue.set(null);
     this.revealed.set(false);

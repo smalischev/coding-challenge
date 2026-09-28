@@ -52,9 +52,9 @@
   Nach dem Aufdecken kann der Scrum Master ausschließlich eine Karte aus dem definierten Kartensatz wählen und bestätigen. Die Auswahl ruft den Ergebnis-Endpunkt auf; der Ablauf wurde im Backend-Profil `dev` gegen das injizierte GitLab-Mock-Gateway mit `204` geprüft.
 
 
-- [ ] **Sitzungsprotokoll für abgeschlossene Runden anzeigen**
+- [x] **Sitzungsprotokoll für abgeschlossene Runden anzeigen**
 
-  Abgeschlossene Schätzrunden mit Issue und Ergebnis im UI festhalten und darstellen.
+  Beim Start einer neuen Runde archiviert das Backend die zuvor aufgedeckte Runde mit Issue, Zeitpunkt und Einzelwerten. Das Frontend lädt diese Daten beim Beitreten und nach dem SSE-Ereignis `round-started` und zeigt sie allen Teilnehmern in einem eigenen Sitzungsprotokoll an.
 
 
 - [x] **Echtzeit-Synchronisation anbinden**

@@ -3,6 +3,7 @@ package webservice;
 import business.PlanningPokerBusiness;
 import auth.webservice.AuthenticatedMemberFactory;
 import domain.CardValue;
+import domain.CompletedRound;
 import domain.Developer;
 import domain.EstimationProgress;
 import domain.Issue;
@@ -253,6 +254,17 @@ public class PlanningPokerResource {
         return Response.noContent().build();
     }
 
+    @GET
+    @Path("/{planningPokerId}/completed-rounds")
+    @RolesAllowed({"SCRUM_MASTER", "DEVELOPER"})
+    @Operation(summary = "Sitzungsprotokoll abrufen", description = "Liefert die beim Start einer neuen Runde archivierten, aufgedeckten Schätzrunden der Sitzung.")
+    @APIResponse(responseCode = "200", description = "Archivierte Schätzrunden")
+    public List<CompletedRoundResponse> getCompletedRounds(@PathParam("planningPokerId") UUID planningPokerId) {
+        return planningPokerBusiness.getCompletedRounds(planningPokerId).stream()
+                .map(this::toCompletedRoundResponse)
+                .toList();
+    }
+
     @POST
     @Path("/{planningPokerId}/active-round/result")
     @RolesAllowed("SCRUM_MASTER")
@@ -273,6 +285,19 @@ public class PlanningPokerResource {
 
     private void notifyProgress(UUID planningPokerId) {
         estimationCompletionNotifier.broadcast(planningPokerId, "estimation-progress", getEstimationProgress(planningPokerId));
+    }
+
+    private CompletedRoundResponse toCompletedRoundResponse(CompletedRound round) {
+        List<EstimateValueResponse> estimates = round.estimates().entrySet().stream()
+                .map(entry -> new EstimateValueResponse(entry.getKey(), entry.getValue()))
+                .toList();
+        return new CompletedRoundResponse(
+                round.roundNumber(),
+                round.gitlabIssueIid(),
+                round.issueTitle(),
+                round.completedAt().toString(),
+                estimates
+        );
     }
 
     public record CreateSessionRequest(String scrumMasterName, long gitlabProjectId, long gitlabIssueIid) {
@@ -316,6 +341,15 @@ public class PlanningPokerResource {
     }
 
     public record EstimateValueResponse(String developerName, CardValue value) {
+    }
+
+    public record CompletedRoundResponse(
+            int roundNumber,
+            long gitlabIssueIid,
+            String issueTitle,
+            String completedAt,
+            List<EstimateValueResponse> estimates
+    ) {
     }
 
     public record NumericEstimationResponse(Integer value) {
