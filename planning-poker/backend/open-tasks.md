@@ -12,9 +12,9 @@
 
 <br>
 
-- [ ] **Abstimmungsfortschritt in Echtzeit an alle Teilnehmer senden** _(README-Pflicht)_
+- [x] **Abstimmungsfortschritt in Echtzeit an alle Teilnehmer senden** _(README-Pflicht)_
 
-  Der Fortschritt ist per REST abrufbar. Das SSE-Ereignis informiert bisher nur den Scrum Master, sobald alle Entwickler geschätzt haben. Für die README-Anforderung müssen alle Teilnehmer Änderungen des Fortschritts aktiv erhalten.
+  Das SSE-Ereignis `estimation-progress` sendet Änderungen des Abstimmungsfortschritts an alle Abonnenten. Das Ereignis `all-developers-estimated` geht weiterhin ausschließlich an den Scrum Master.
 
 <br>
 
