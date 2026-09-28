@@ -9,21 +9,15 @@
   <div class="estimates">
     @for (estimate of revealedEstimates(); track estimate.developerName) {
       <div>
-        <b>{{ estimate.developerName }}</b
-        ><strong>{{ estimate.value }}</strong>
+        <b>{{ estimate.developerName }}</b>
+        <strong>{{ estimate.value }}</strong>
       </div>
     }
   </div>
-  <section class="distribution">
-    <div class="distribution-heading"><span>Verteilung</span><small>Anzahl der Schätzungen</small></div>
-    @for (group of estimateGroups(); track group.value) {
-      <div class="bar-row">
-        <strong class="value">{{ group.value }}</strong>
-        <div class="track"><div class="bar" [style.width.%]="group.percentage"></div></div>
-        <span class="count">{{ group.count }}</span>
-      </div>
-    }
-  </section>
+  <app-estimate-distribution-chart
+    [groups]="estimateGroups()"
+    [includeDemoEstimates]="true"
+  ></app-estimate-distribution-chart>
   <div class="metrics">
     <div>
       <span>Durchschnitt</span><strong>{{ average() ?? '–' }}</strong>

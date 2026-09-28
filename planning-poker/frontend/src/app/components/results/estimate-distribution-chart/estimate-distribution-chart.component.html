@@ -1,0 +1,19 @@
+<section class="distribution">
+  <div class="distribution-heading">
+    <span>Verteilung</span>
+    <small>Mit der Maus über eine Säule fahren für die Anzahl</small>
+  </div>
+  @if (includeDemoEstimates()) {
+    <p class="demo-hint">Enthält vorübergehend 20 Demo-Schätzungen.</p>
+  }
+  <div class="chart-container">
+    <canvas
+      baseChart
+      [data]="chartData()"
+      [options]="chartOptions"
+      [type]="'bar'"
+      aria-label="Verteilung der abgegebenen Schätzungen nach Kartenwert"
+      role="img"
+    ></canvas>
+  </div>
+</section>
