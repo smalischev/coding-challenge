@@ -116,3 +116,7 @@ Danach ist die Anwendung unter `http://localhost:4200` beziehungsweise unter
 und leitet Aufrufe an `/api/*` einschließlich der Server-Sent-Events intern an
 den Backend-Container weiter. Dadurch benötigt der Browser keine
 CORS-Freigabe und kennt keine interne Backend-Adresse.
+
+## Entscheidung: GitLab-Kommunikation über das Backend
+
+Der GitLab-Zugriff erfolgt bewusst nicht direkt aus dem Browser: Ein GitLab Personal Access Token darf nicht im Frontend ausgeliefert oder für Benutzer einsehbar sein. Das Backend verwahrt dieses Geheimnis, erzwingt die Berechtigungen des angemeldeten Planning-Poker-Benutzers und bündelt die GitLab-spezifische Logik – Issue laden sowie das finale Ergebnis als Label speichern – an einer Stelle. Dadurch bleibt das Angular-Frontend auf die Bedienoberfläche und die Planning-Poker-API beschränkt.
