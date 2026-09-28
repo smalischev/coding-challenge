@@ -57,8 +57,8 @@
   Abgeschlossene Schätzrunden mit Issue und Ergebnis im UI festhalten und darstellen.
 
 
-- [ ] **Echtzeit-Synchronisation anbinden**
+- [x] **Echtzeit-Synchronisation anbinden**
 
-  Für den Scrum Master ist der vorhandene SSE-Endpunkt angebunden: Sobald alle Entwickler geschätzt haben, erscheint eine Echtzeit-Benachrichtigung und der Fortschritt wird neu geladen. Teilnehmer, Issue, Fortschritt und aufgedeckte Ergebnisse sind darüber hinaus noch nicht in Echtzeit synchronisiert.
+  Alle Sitzungsteilnehmer erhalten über einen gemeinsamen SSE-Stream Änderungen an Teilnehmerliste und Schätzfortschritt, dem freigegebenen Issue, dem Aufdecken der Runde sowie dem Start einer neuen Runde in Echtzeit. Damit sehen alle Teilnehmer – wie in der README gefordert – Beitritte, das aktive Issue und den verdeckten Abstimmungsfortschritt ohne Kartenwerte. Erst beim Aufdecken werden die Einzelwerte übertragen und angezeigt. Das Ereignis `all-developers-estimated` wird ausschließlich an den Scrum-Master-Owner gesendet, weil nur er die Runde aufdecken kann.
 
   - [x] Scrum Master per SSE benachrichtigen, sobald alle Developer geschätzt haben
