@@ -1,0 +1,5 @@
+services:
+  planning-poker-frontend:
+    build: .
+    ports:
+      - "4200:80"

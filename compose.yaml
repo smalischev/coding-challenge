@@ -1,0 +1,9 @@
+include:
+  - path: ./planning-poker/backend/compose.yaml
+  - path: ./planning-poker/frontend/compose.yaml
+
+services:
+  planning-poker-frontend:
+    depends_on:
+      planning-poker-backend:
+        condition: service_healthy

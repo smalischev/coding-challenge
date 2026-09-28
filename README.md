@@ -25,9 +25,11 @@ Voraussetzungen:
 
 ### 1. Lokale Konfiguration anlegen
 
-Zuerst wird die Vorlage für die lokalen Zugangsdaten kopiert:
+Zuerst in das Backend-Verzeichnis wechseln und die Vorlage für die lokalen
+Zugangsdaten kopieren:
 
 ```bash
+cd planning-poker/backend
 cp .env.example .env
 ```
 
@@ -48,7 +50,8 @@ REST-Client ergänzt den API-Pfad selbst.
 
 Das Backend signiert Login-Tokens mit dem privaten RSA-Schlüssel und prüft
 eingehende Tokens mit dem öffentlichen Schlüssel. Beide Schlüssel werden nur
-lokal gespeichert und über Docker in den Container eingebunden:
+lokal gespeichert und über Docker in den Container eingebunden. Die folgenden
+Befehle werden im Verzeichnis `planning-poker/backend/` ausgeführt:
 
 ```bash
 mkdir -p secrets
@@ -62,10 +65,23 @@ eingecheckt werden.
 
 ### 3. Anwendung starten
 
-Die Anwendung wird einschließlich Image-Build aus dem Verzeichnis `backend/`
-gestartet:
+Die vollständige Anwendung wird einschließlich Image-Build aus dem Verzeichnis
+`coding-challenge/` gestartet:
 
 ```bash
+docker compose up --build
+```
+
+Für die getrennte Entwicklung können Backend und Frontend auch jeweils mit
+deren eigener Compose-Datei gestartet werden:
+
+```bash
+cd planning-poker/backend
+docker compose up --build
+```
+
+```bash
+cd planning-poker/frontend
 docker compose up --build
 ```
 

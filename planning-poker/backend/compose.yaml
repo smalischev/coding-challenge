@@ -10,11 +10,9 @@ services:
     volumes:
       - ${JWT_PRIVATE_KEY_FILE}:/run/secrets/jwt-private-key.pem:ro
       - ${JWT_PUBLIC_KEY_FILE}:/run/secrets/jwt-public-key.pem:ro
-
-  planning-poker-frontend:
-    build:
-      context: ../frontend
-    ports:
-      - "4200:80"
-    depends_on:
-      - planning-poker-backend
+    healthcheck:
+      test: ["CMD-SHELL", "curl --fail --silent http://localhost:8080/q/health/ready > /dev/null"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 20s
